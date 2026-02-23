@@ -58,10 +58,20 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
     setLoading(true);
     setError('');
     try {
-      const [summary, mall] = await Promise.all([api.pointsSummary(), api.mallItems()]);
-      setBalance(summary.balance);
-      onBalanceChange?.(summary.balance);
+      const mall = await api.mallItems();
       setItems(mall.items || []);
+
+      try {
+        const summary = await api.pointsSummary();
+        setBalance(summary.balance);
+        onBalanceChange?.(summary.balance);
+      } catch (e: any) {
+        // Mall should be browsable without login; points summary is best-effort.
+        if (e?.code !== 'UNAUTHORIZED') {
+          throw e;
+        }
+        setBalance(0);
+      }
     } catch (e: any) {
       setError(e?.message || '加载失败');
     } finally {
