@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { chromium, request } = require('playwright');
 
 const WEB_BASE = 'http://127.0.0.1:3003';
 
@@ -60,7 +60,7 @@ async function ensureLoggedIn(page) {
 }
 
 async function setTokenFallback(context) {
-  const req = await context.request.newContext();
+  const req = await request.newContext();
   const resp = await req.post('http://127.0.0.1:4000/api/auth/verify-basic', {
     data: { name: '张三', mobile: '13800000000', code: '123456' },
   });
