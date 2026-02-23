@@ -1,5 +1,6 @@
 import { authOptional, authRequired } from '../common/middleware.mjs';
-import { appendPoints, dateOnly, getBalance, getState, nextId, persistState } from '../common/state.mjs';
+import { dateOnly, getBalance, getState, nextId, persistState } from '../common/state.mjs';
+import { recordPoints } from '../services/points.service.mjs';
 
 export function registerActivitiesRoutes(app) {
   app.get('/api/activities', authOptional, (req, res) => {
@@ -50,6 +51,9 @@ export function registerActivitiesRoutes(app) {
     if (activity.category === 'competition') {
       return res.status(409).json({ code: 'MANUAL_FLOW_REQUIRED', message: '该活动需通过活动页参与，不支持直接完成' });
     }
+    if (!req.user.isVerifiedBasic) {
+      return res.status(403).json({ code: 'NEED_BASIC_VERIFY', message: '请先完成基础身份确认' });
+    }
 
     const today = dateOnly(new Date());
     const exists = state.activityCompletions.find(
@@ -68,7 +72,15 @@ export function registerActivitiesRoutes(app) {
       createdAt: new Date().toISOString(),
     });
 
-    appendPoints(req.user.id, 'earn', activity.rewardPoints, 'activity_task', String(id), `完成活动 ${activity.title}`);
+    recordPoints({
+      userId: req.user.id,
+      direction: 'in',
+      amount: Number(activity.rewardPoints) || 0,
+      sourceType: 'activity_task',
+      sourceId: String(id),
+      idempotencyKey: `activity:${req.user.id}:${id}:${today}`,
+      description: `完成活动 ${activity.title}`,
+    });
     persistState();
 
     return res.json({
@@ -99,7 +111,15 @@ export function registerActivitiesRoutes(app) {
       createdAt: new Date().toISOString(),
     });
 
-    appendPoints(req.user.id, 'earn', 10, 'daily_sign_in', today, '每日签到奖励');
+    recordPoints({
+      userId: req.user.id,
+      direction: 'in',
+      amount: 10,
+      sourceType: 'daily_sign_in',
+      sourceId: today,
+      idempotencyKey: `sign-in:${req.user.id}:${today}`,
+      description: '每日签到奖励',
+    });
     persistState();
 
     return res.json({
