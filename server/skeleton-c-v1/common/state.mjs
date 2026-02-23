@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import pg from 'pg';
+
+const { Pool } = pg;
 
 const dataDir = path.resolve(process.cwd(), 'server', 'data');
 const dbPath = path.join(dataDir, 'db.json');
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const initialState = {
   users: [],
@@ -39,14 +39,75 @@ const initialState = {
   policies: [],
 };
 
-const state = loadState();
+const state = structuredClone(initialState);
+let initialized = false;
+let flushChain = Promise.resolve();
+
+const DATABASE_URL = process.env.DATABASE_URL || '';
+const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'postgres';
+const usePostgres = STORAGE_BACKEND === 'postgres';
+
+const pool = usePostgres
+  ? new Pool({
+      connectionString: DATABASE_URL,
+      ssl: process.env.PGSSL === 'require' ? { rejectUnauthorized: false } : false,
+      max: Number(process.env.PG_POOL_MAX || 10),
+    })
+  : null;
+
+export function getStorageBackend() {
+  return usePostgres ? 'postgres' : 'file';
+}
+
+export async function initializeState() {
+  if (initialized) return;
+
+  if (usePostgres) {
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL is required when STORAGE_BACKEND=postgres');
+    }
+    await ensureRuntimeSchema();
+
+    const loaded = await loadRuntimeStateFromPostgres();
+    if (loaded) {
+      assignState(loaded);
+    } else {
+      const legacy = loadStateFromFile();
+      assignState(legacy);
+      await writeRuntimeStateToPostgres();
+    }
+  } else {
+    assignState(loadStateFromFile());
+  }
+
+  initialized = true;
+}
 
 export function getState() {
   return state;
 }
 
 export function persistState() {
-  fs.writeFileSync(dbPath, JSON.stringify(state, null, 2), 'utf-8');
+  if (!initialized) return;
+
+  if (!usePostgres) {
+    fs.writeFileSync(dbPath, JSON.stringify(state, null, 2), 'utf-8');
+    return;
+  }
+
+  flushChain = flushChain
+    .then(() => writeRuntimeStateToPostgres())
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('[state] postgres persist failed:', err?.message || err);
+    });
+}
+
+export async function closeState() {
+  if (pool) {
+    await flushChain.catch(() => undefined);
+    await pool.end();
+  }
 }
 
 export function dateOnly(d = new Date()) {
@@ -137,7 +198,18 @@ export function generateWriteoffToken() {
   return token;
 }
 
-function loadState() {
+function assignState(next) {
+  const merged = {
+    ...structuredClone(initialState),
+    ...(next || {}),
+  };
+
+  for (const key of Object.keys(initialState)) {
+    state[key] = merged[key];
+  }
+}
+
+function loadStateFromFile() {
   if (!fs.existsSync(dbPath)) return structuredClone(initialState);
   try {
     const parsed = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
@@ -145,13 +217,52 @@ function loadState() {
       ...structuredClone(initialState),
       ...parsed,
       users: Array.isArray(parsed.users) ? parsed.users : [],
+      smsCodes: Array.isArray(parsed.smsCodes) ? parsed.smsCodes : [],
       sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
       pointAccounts: Array.isArray(parsed.pointAccounts) ? parsed.pointAccounts : [],
       pointTransactions: Array.isArray(parsed.pointTransactions) ? parsed.pointTransactions : [],
       mallItems: Array.isArray(parsed.mallItems) ? parsed.mallItems : structuredClone(initialState.mallItems),
       redemptions: Array.isArray(parsed.redemptions) ? parsed.redemptions : [],
+      activities: Array.isArray(parsed.activities) ? parsed.activities : structuredClone(initialState.activities),
+      activityCompletions: Array.isArray(parsed.activityCompletions) ? parsed.activityCompletions : [],
+      signIns: Array.isArray(parsed.signIns) ? parsed.signIns : [],
+      learningCourses: Array.isArray(parsed.learningCourses) ? parsed.learningCourses : [],
+      courseCompletions: Array.isArray(parsed.courseCompletions) ? parsed.courseCompletions : [],
+      learningGames: Array.isArray(parsed.learningGames) ? parsed.learningGames : [],
+      learningTools: Array.isArray(parsed.learningTools) ? parsed.learningTools : [],
+      familyMembers: Array.isArray(parsed.familyMembers) ? parsed.familyMembers : [],
+      insuranceReminders: Array.isArray(parsed.insuranceReminders) ? parsed.insuranceReminders : [],
+      policies: Array.isArray(parsed.policies) ? parsed.policies : [],
     };
   } catch {
     return structuredClone(initialState);
   }
+}
+
+async function ensureRuntimeSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS runtime_state (
+      id INTEGER PRIMARY KEY,
+      payload JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+async function loadRuntimeStateFromPostgres() {
+  const { rows } = await pool.query('SELECT payload FROM runtime_state WHERE id = 1');
+  if (!rows[0]) return null;
+  return rows[0].payload;
+}
+
+async function writeRuntimeStateToPostgres() {
+  await pool.query(
+    `
+      INSERT INTO runtime_state (id, payload, updated_at)
+      VALUES (1, $1::jsonb, now())
+      ON CONFLICT (id)
+      DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+    `,
+    [JSON.stringify(state)]
+  );
 }

@@ -21,11 +21,17 @@ View your app in AI Studio: https://ai.studio/apps/c4d46c6c-1217-4d90-b074-78399
 
 ## Backend API (local)
 
-This repo now includes a local Express + SQLite API:
+This repo now includes a local Express + PostgreSQL API (runtime state stored in PostgreSQL):
 
 1. Copy env template:
    `cp .env.example .env.local`
-2. Start API server:
+2. Configure PostgreSQL env in `.env` (see `.env.example`):
+   `STORAGE_BACKEND=postgres`
+   `DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/insurance_code`
+3. (First-time data import) generate SQL then apply:
+   `node scripts/migrate_dbjson_to_postgres_v1.mjs`
+   `npm run db:apply:dbjson`
+4. Start API server:
    `npm run dev:api`
 3. API health check:
    `http://localhost:4000/api/health`
