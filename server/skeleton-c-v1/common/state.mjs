@@ -21,6 +21,7 @@ const initialState = {
   ],
   activityCompletions: [],
   signIns: [],
+  pointAccounts: [],
   pointTransactions: [],
   mallItems: [
     { id: 1, name: '智能低糖电饭煲', pointsCost: 1200, stock: 50, isActive: true },
@@ -68,6 +69,11 @@ export function formatUser(user) {
 }
 
 export function getBalance(userId) {
+  if (Array.isArray(state.pointAccounts)) {
+    const account = state.pointAccounts.find((x) => x.userId === userId);
+    if (account && Number.isFinite(Number(account.balance))) return Number(account.balance);
+  }
+
   const rows = state.pointTransactions
     .filter((t) => t.userId === userId)
     .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
@@ -88,6 +94,15 @@ export function appendPoints(userId, type, amount, source, sourceId, description
     description,
     createdAt: new Date().toISOString(),
   });
+
+  if (!Array.isArray(state.pointAccounts)) state.pointAccounts = [];
+  let account = state.pointAccounts.find((x) => x.userId === userId);
+  if (!account) {
+    account = { userId, balance: 0, updatedAt: new Date().toISOString() };
+    state.pointAccounts.push(account);
+  }
+  account.balance = balance;
+  account.updatedAt = new Date().toISOString();
 }
 
 export function createSession(userId) {
@@ -131,6 +146,7 @@ function loadState() {
       ...parsed,
       users: Array.isArray(parsed.users) ? parsed.users : [],
       sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+      pointAccounts: Array.isArray(parsed.pointAccounts) ? parsed.pointAccounts : [],
       pointTransactions: Array.isArray(parsed.pointTransactions) ? parsed.pointTransactions : [],
       mallItems: Array.isArray(parsed.mallItems) ? parsed.mallItems : structuredClone(initialState.mallItems),
       redemptions: Array.isArray(parsed.redemptions) ? parsed.redemptions : [],

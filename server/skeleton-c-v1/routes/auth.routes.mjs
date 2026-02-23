@@ -1,4 +1,5 @@
-import { appendPoints, createSession, dateOnly, formatUser, getState, nextId, persistState } from '../common/state.mjs';
+import { createSession, dateOnly, formatUser, getState, nextId, persistState } from '../common/state.mjs';
+import { recordPoints } from '../services/points.service.mjs';
 
 export function registerAuthRoutes(app) {
   app.post('/api/auth/send-code', (req, res) => {
@@ -77,7 +78,15 @@ export function registerAuthRoutes(app) {
         createdAt: new Date().toISOString(),
       };
       state.users.push(user);
-      appendPoints(user.id, 'earn', 200, 'onboard', String(user.id), '新用户基础积分');
+      recordPoints({
+        userId: user.id,
+        direction: 'in',
+        amount: 200,
+        sourceType: 'onboard',
+        sourceId: String(user.id),
+        idempotencyKey: `onboard:${user.id}`,
+        description: '新用户基础积分',
+      });
     } else {
       user.name = name;
       user.isVerifiedBasic = true;
