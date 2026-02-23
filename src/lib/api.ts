@@ -9,6 +9,75 @@ export type User = {
   verified_at?: string | null;
 };
 
+export type LearningCourse = {
+  id: number;
+  title: string;
+  desc: string;
+  type: 'video' | 'comic' | 'article';
+  typeLabel: string;
+  progress: number;
+  timeLeft: string;
+  image: string;
+  action: string;
+  color: string;
+  btnColor: string;
+  points: number;
+  category: string;
+  content: string;
+};
+
+export type LearningGame = {
+  id: number;
+  title: string;
+  desc: string;
+  category: string;
+  difficulty: number;
+  bestScore: string;
+  color: string;
+  lightColor: string;
+  textColor: string;
+};
+
+export type LearningTool = {
+  id: number;
+  title: string;
+  desc: string;
+  color: string;
+  bg: string;
+};
+
+export type InsurancePolicy = {
+  id: number;
+  company: string;
+  name: string;
+  type: string;
+  icon: 'stethoscope' | 'heart-pulse' | 'shield';
+  amount: number;
+  nextPayment: string;
+  status: string;
+  applicant: string;
+  insured: string;
+  periodStart: string;
+  periodEnd: string;
+  annualPremium: number;
+  paymentPeriod: string;
+  coveragePeriod: string;
+  responsibilities: Array<{ name: string; desc: string; limit: number }>;
+  paymentHistory: Array<{ date: string; amount: number; note: string; status: string }>;
+  policyNo: string;
+};
+
+export type Activity = {
+  id: number;
+  title: string;
+  category: string;
+  rewardPoints: number;
+  sortOrder: number;
+  participants?: number;
+  completed?: boolean;
+  canComplete?: boolean;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -60,7 +129,13 @@ export const api = {
 
   me: () => request<{ user: User; balance: number }>('/api/me'),
 
-  activities: () => request<{ activities: any[]; balance: number }>('/api/activities'),
+  activities: () =>
+    request<{ activities: Activity[]; balance: number; taskProgress: { total: number; completed: number } }>('/api/activities'),
+
+  completeActivity: (id: number) =>
+    request<{ ok: boolean; reward: number; balance: number }>(`/api/activities/${id}/complete`, {
+      method: 'POST',
+    }),
 
   signIn: () => request<{ ok: boolean; reward: number; balance: number }>('/api/sign-in', { method: 'POST' }),
 
@@ -82,5 +157,51 @@ export const api = {
     request<{ ok: boolean }>(`/api/redemptions/${id}/writeoff`, {
       method: 'POST',
       body: JSON.stringify({ token }),
+    }),
+
+  learningCourses: () => request<{ categories: string[]; courses: LearningCourse[] }>('/api/learning/courses'),
+
+  learningCourseDetail: (id: number) => request<{ course: LearningCourse }>(`/api/learning/courses/${id}`),
+
+  completeCourse: (id: number) =>
+    request<{ ok: boolean; duplicated: boolean; reward: number; balance: number; message?: string }>(`/api/learning/courses/${id}/complete`, {
+      method: 'POST',
+    }),
+
+  learningGames: () => request<{ games: LearningGame[] }>('/api/learning/games'),
+
+  learningTools: () => request<{ tools: LearningTool[] }>('/api/learning/tools'),
+
+  insuranceOverview: () =>
+    request<{
+      summary: { totalCoverage: number; healthScore: number; activePolicies: number; annualPremium: number };
+      familyMembers: Array<{ id: number; name: string; avatar: string; score: number; coveredTypes: string[] }>;
+      reminders: Array<{ id: number; title: string; desc: string; tag: string; actionText: string; kind: string }>;
+    }>('/api/insurance/overview'),
+
+  insurancePolicies: () => request<{ policies: InsurancePolicy[] }>('/api/insurance/policies'),
+
+  insurancePolicyDetail: (id: number) => request<{ policy: InsurancePolicy }>(`/api/insurance/policies/${id}`),
+
+  scanPolicy: () =>
+    request<{ ok: boolean; data: any }>('/api/insurance/policies/scan', {
+      method: 'POST',
+    }),
+
+  createPolicy: (payload: {
+    company: string;
+    name: string;
+    applicant: string;
+    insured: string;
+    date: string;
+    paymentPeriod: string;
+    coveragePeriod: string;
+    amount: number;
+    firstPremium: number;
+    type?: string;
+  }) =>
+    request<{ ok: boolean; policy: InsurancePolicy }>('/api/insurance/policies', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
 };

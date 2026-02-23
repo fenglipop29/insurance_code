@@ -77,7 +77,7 @@ export default function RealNameAuthModal({ onClose, onSuccess }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
           onClick={onClose}
         />
         <motion.div 
@@ -85,12 +85,13 @@ export default function RealNameAuthModal({ onClose, onSuccess }: Props) {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-safe shadow-2xl"
+          className="relative z-10 w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-safe shadow-2xl pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <ShieldCheck className="text-blue-500" size={24} />
-              <h2 className="text-xl font-bold">实名认证</h2>
+              <h2 className="text-xl font-bold">基础身份确认</h2>
             </div>
             <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:bg-slate-100 rounded-full">
               <X size={20} />
@@ -98,7 +99,7 @@ export default function RealNameAuthModal({ onClose, onSuccess }: Props) {
           </div>
           
           <p className="text-sm text-slate-500 mb-6">
-            为了保障您的权益，参与活动及兑换奖品前需完成实名认证。
+            为保障您的奖励正常发放，并用于服务联系，请确认本人身份信息。
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
