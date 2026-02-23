@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 
 interface Props {
   onClose: () => void;
+  requireAuth: (action: () => void) => void;
   onBalanceChange?: (balance: number) => void;
 }
 
@@ -47,7 +48,7 @@ const fallbackProductImages = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCbdRnzH0CwTDApiCUg006g_b4JXat9DSNMOEeXaCeZ6iGT8fkfWux15k6SDdOKbQmCtLn_VuXGHnkwRuP3eEnWNKwdrmWUWvNxHuok7ZUnY2sOPuksOOj0_4-Vu6kU3RCj0D0pi9et2zU7SZsu8RvhTHXLTKmWxD3HTMI1KEpgTtLo5Y0qItVVFMJq1eBRvbEK4RRFnI4JhpbV-3fwjePFGI0De3qOwESnkNFz45gBiOFBDgcVmyZIeKboLtCofyKE-7J-ClMetg0',
 ];
 
-export default function PointsMall({ onClose, onBalanceChange }: Props) {
+export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Props) {
   const [balance, setBalance] = useState(0);
   const [items, setItems] = useState<MallItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +91,12 @@ export default function PointsMall({ onClose, onBalanceChange }: Props) {
       await loadData();
       alert('兑换成功，可在“我的兑换”中核销');
     } catch (e: any) {
+      if (e?.code === 'NEED_BASIC_VERIFY') {
+        requireAuth(() => {
+          handleRedeem(itemId).catch(() => undefined);
+        });
+        return;
+      }
       alert(e?.message || '兑换失败');
     }
   };

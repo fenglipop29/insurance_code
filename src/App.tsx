@@ -125,7 +125,7 @@ export default function App() {
   };
 
   const openPointsMall = () => {
-    requireAuth(() => setShowPointsMall(true));
+    setShowPointsMall(true);
   };
 
   const openAdvisorDetail = () => {
@@ -172,7 +172,13 @@ export default function App() {
       )}
 
       <AnimatePresence>
-        {showPointsMall && <PointsMall onClose={() => setShowPointsMall(false)} onBalanceChange={setPointsBalance} />}
+        {showPointsMall && (
+          <PointsMall
+            onClose={() => setShowPointsMall(false)}
+            requireAuth={requireAuth}
+            onBalanceChange={setPointsBalance}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
