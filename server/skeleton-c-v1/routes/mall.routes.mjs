@@ -1,5 +1,7 @@
 import { authOptional, authRequired } from '../common/middleware.mjs';
-import { appendPoints, generateWriteoffToken, getBalance, getState, nextId, persistState } from '../common/state.mjs';
+import { getBalance, getState } from '../common/state.mjs';
+import { tenantContext } from '../common/access-control.mjs';
+import { createOrder, payOrderWithPoints } from '../services/commerce.service.mjs';
 
 export function registerMallRoutes(app) {
   app.get('/api/mall/items', authOptional, (_req, res) => {
@@ -8,47 +10,51 @@ export function registerMallRoutes(app) {
     res.json({ items });
   });
 
-  app.post('/api/mall/redeem', authRequired, (req, res) => {
+  app.post('/api/mall/redeem', authRequired, tenantContext, (req, res) => {
     if (!req.user.isVerifiedBasic) {
       return res.status(403).json({ code: 'NEED_BASIC_VERIFY', message: '请先完成基础身份确认' });
     }
 
-    const state = getState();
-    const itemId = Number(req.body?.itemId);
-    const item = state.mallItems.find((row) => row.id === itemId && row.isActive);
-    if (!item) {
-      return res.status(404).json({ code: 'ITEM_NOT_FOUND', message: '商品不存在' });
+    try {
+      const itemId = Number(req.body?.itemId);
+      const idempotencyKey = String(req.body?.idempotencyKey || '').trim() || undefined;
+      const { order } = createOrder({
+        tenantId: req.tenantContext.tenantId,
+        customerId: req.user.id,
+        productId: itemId,
+        quantity: 1,
+        idempotencyKey: idempotencyKey ? `mall-create:${idempotencyKey}` : undefined,
+        actor: req.actor,
+      });
+      const { redemption } = payOrderWithPoints({
+        tenantId: req.tenantContext.tenantId,
+        orderId: Number(order.id),
+        customerId: req.user.id,
+        idempotencyKey: idempotencyKey ? `mall-pay:${idempotencyKey}` : undefined,
+        actor: req.actor,
+      });
+      const state = getState();
+      const item = state.mallItems.find((row) => Number(row.id) === itemId);
+      return res.json({
+        ok: true,
+        redemption: {
+          id: redemption.id,
+          orderNo: order.orderNo,
+          itemName: item?.name || order.productName,
+          pointsCost: redemption.pointsCost,
+          status: redemption.status,
+          expiresAt: redemption.expiresAt,
+          writeoffToken: redemption.writeoffToken,
+        },
+        token: redemption.writeoffToken,
+        balance: getBalance(req.user.id),
+      });
+    } catch (err) {
+      const code = err?.message || 'REDEEM_FAILED';
+      if (code === 'ITEM_NOT_FOUND') return res.status(404).json({ code, message: '商品不存在' });
+      if (code === 'OUT_OF_STOCK') return res.status(409).json({ code, message: '库存不足' });
+      if (code === 'INSUFFICIENT_POINTS') return res.status(409).json({ code, message: '积分不足' });
+      return res.status(400).json({ code, message: '兑换失败' });
     }
-    if (Number(item.stock) <= 0) {
-      return res.status(409).json({ code: 'OUT_OF_STOCK', message: '库存不足' });
-    }
-
-    const balance = getBalance(req.user.id);
-    if (balance < Number(item.pointsCost)) {
-      return res.status(409).json({ code: 'INSUFFICIENT_POINTS', message: '积分不足' });
-    }
-
-    item.stock -= 1;
-    const redemption = {
-      id: nextId(state.redemptions),
-      userId: req.user.id,
-      itemId: item.id,
-      pointsCost: item.pointsCost,
-      status: 'pending',
-      writeoffToken: generateWriteoffToken(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
-      writtenOffAt: null,
-    };
-
-    state.redemptions.push(redemption);
-    appendPoints(req.user.id, 'consume', item.pointsCost, 'redeem', String(redemption.id), `兑换 ${item.name}`);
-    persistState();
-
-    return res.json({
-      ok: true,
-      token: redemption.writeoffToken,
-      balance: getBalance(req.user.id),
-    });
   });
 }

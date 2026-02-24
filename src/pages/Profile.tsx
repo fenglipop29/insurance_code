@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Settings, Camera, ShieldCheck, Edit3, Coins, ShoppingBag, ChevronRight, BookOpen, Heart, Users, FileText, Calendar, Phone } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import MyExchanges from '../components/profile/MyExchanges';
-import PointsTransactions from '../components/profile/PointsTransactions';
 import StudyRecords from '../components/profile/StudyRecords';
 import MyFavorites from '../components/profile/MyFavorites';
 import FamilyMembers from '../components/profile/FamilyMembers';
 import CourseDetail from '../components/learning/CourseDetail';
+import PointsDetailPage from '../components/mall/PointsDetailPage';
 import { User, api, LearningCourse, InsurancePolicy } from '../lib/api';
+
+const POLICY_COUNT_CACHE_KEY = 'insurance_profile_policy_count';
+
+function readCachedPolicyCount() {
+  const raw = localStorage.getItem(POLICY_COUNT_CACHE_KEY);
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
 
 interface Props {
   requireAuth: (action: () => void) => void;
@@ -15,18 +23,19 @@ interface Props {
   user: User | null;
   pointsBalance: number;
   onOpenMall: () => void;
+  onGoInsurance: () => void;
 }
 
-export default function Profile({ requireAuth, isAuthenticated, user, pointsBalance, onOpenMall }: Props) {
+export default function Profile({ requireAuth, isAuthenticated, user, pointsBalance, onOpenMall, onGoInsurance }: Props) {
   const [showMyExchanges, setShowMyExchanges] = useState(false);
-  const [showPointsTransactions, setShowPointsTransactions] = useState(false);
+  const [showPointsDetail, setShowPointsDetail] = useState(false);
   const [showStudyRecords, setShowStudyRecords] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showFamilyMembers, setShowFamilyMembers] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<LearningCourse | null>(null);
   const [latestPendingExchange, setLatestPendingExchange] = useState<any>(null);
   const [familyCount, setFamilyCount] = useState(0);
-  const [policyCount, setPolicyCount] = useState(0);
+  const [policyCount, setPolicyCount] = useState(() => readCachedPolicyCount());
   const [todayTaskDone, setTodayTaskDone] = useState(0);
   const [courses, setCourses] = useState<LearningCourse[]>([]);
   const [familyMembers, setFamilyMembers] = useState<Array<{ id: number; name: string; avatar: string; score: number; coveredTypes: string[] }>>([]);
@@ -35,38 +44,21 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
   useEffect(() => {
     if (!isAuthenticated) {
       setLatestPendingExchange(null);
-      setFamilyCount(0);
-      setPolicyCount(0);
       setTodayTaskDone(0);
-      return;
     }
 
     Promise.allSettled([
       api.redemptions(),
-      api.insuranceOverview(),
-      api.insurancePolicies(),
       api.activities(),
       api.learningCourses(),
     ]).then((all) => {
-      const [r1, r2, r3, r4, r5] = all;
+      const [r1, r4, r5] = all;
 
       if (r1.status === 'fulfilled') {
         const pending = r1.value.list
           .filter((x: any) => x.status !== 'written_off' && new Date(x.expiresAt).getTime() >= Date.now())
           .sort((a: any, b: any) => b.id - a.id)[0];
         setLatestPendingExchange(pending || null);
-      }
-
-      if (r2.status === 'fulfilled') {
-        const members = r2.value.familyMembers || [];
-        setFamilyMembers(members);
-        setFamilyCount(members.length);
-      }
-
-      if (r3.status === 'fulfilled') {
-        const list = r3.value.policies || [];
-        setPolicies(list);
-        setPolicyCount(list.length);
       }
 
       if (r4.status === 'fulfilled') {
@@ -78,6 +70,33 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
       }
     });
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    Promise.allSettled([api.insuranceOverview(), api.insurancePolicies()]).then((all) => {
+      const [rOverview, rPolicies] = all;
+      let nextPolicyCount: number | null = null;
+      if (rOverview.status === 'fulfilled') {
+        const members = rOverview.value.familyMembers || [];
+        setFamilyMembers(members);
+        setFamilyCount(members.length);
+        const activePolicies = Number(rOverview.value.summary?.activePolicies ?? 0);
+        if (Number.isFinite(activePolicies)) nextPolicyCount = activePolicies;
+      }
+      if (rPolicies.status === 'fulfilled') {
+        const list = rPolicies.value.policies || [];
+        setPolicies(list);
+        nextPolicyCount = Math.max(nextPolicyCount ?? 0, list.length);
+      }
+      if (nextPolicyCount !== null) {
+        // Keep count stable within a session: avoid late async empty responses overriding valid data.
+        setPolicyCount((prev) => Math.max(prev, nextPolicyCount));
+      }
+    });
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    localStorage.setItem(POLICY_COUNT_CACHE_KEY, String(policyCount));
+  }, [policyCount]);
 
   const exchangeDate = useMemo(() => {
     if (!latestPendingExchange?.createdAt) return '';
@@ -147,7 +166,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
               </div>
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); setShowPointsTransactions(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                requireAuth(() => setShowPointsDetail(true));
+              }}
               className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-200 active:scale-95 transition-transform"
             >
               查看积分
@@ -235,7 +257,7 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
               <ChevronRight className="text-slate-300" size={20} />
             </button>
 
-            <button className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors">
+            <button onClick={onGoInsurance} className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors">
               <FileText className="text-amber-500 mr-4" size={24} />
               <span className="text-base font-medium flex-1 text-left">我的保单</span>
               <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2">在保 {policyCount}</span>
@@ -275,12 +297,7 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
       <AnimatePresence>
         {selectedCourse && <CourseDetail course={selectedCourse as any} onBack={() => setSelectedCourse(null)} />}
         {showMyExchanges && <MyExchanges onClose={() => setShowMyExchanges(false)} />}
-        {showPointsTransactions && (
-          <PointsTransactions
-            onClose={() => setShowPointsTransactions(false)}
-            onOpenMall={onOpenMall}
-          />
-        )}
+        {showPointsDetail && <PointsDetailPage onClose={() => setShowPointsDetail(false)} initialBalance={pointsBalance} />}
         {showStudyRecords && (
           <StudyRecords
             onClose={() => setShowStudyRecords(false)}

@@ -72,7 +72,7 @@ export default function RealNameAuthModal({ onClose, onSuccess }: Props) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="fixed inset-0 z-[11000] flex items-end sm:items-center justify-center">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -85,7 +85,7 @@ export default function RealNameAuthModal({ onClose, onSuccess }: Props) {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="relative z-10 w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-safe shadow-2xl pointer-events-auto"
+          className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-[calc(env(safe-area-inset-bottom,20px)+20px)] shadow-2xl pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-6">

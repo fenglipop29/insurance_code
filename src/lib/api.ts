@@ -67,6 +67,22 @@ export type InsurancePolicy = {
   policyNo: string;
 };
 
+export type PointDetailItem = {
+  id: number;
+  title: string;
+  amount: number;
+  balance?: number;
+  direction: 'in' | 'out';
+  source: string;
+  createdAt: string;
+};
+
+export type PointDetailGroup = {
+  key: string;
+  label: string;
+  items: PointDetailItem[];
+};
+
 export type Activity = {
   id: number;
   title: string;
@@ -85,14 +101,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...(init?.headers as Record<string, string>),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers,
-  });
+  let res: Response | null = null;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch (err) {
+    throw err instanceof Error ? err : new Error('网络连接失败');
+  }
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401 && (data as any).code === 'UNAUTHORIZED') {
+      clearToken();
+    }
     const err = new Error((data as any).message || '请求失败');
     (err as any).code = (data as any).code;
     throw err;
@@ -142,11 +165,25 @@ export const api = {
   pointsSummary: () => request<{ balance: number }>('/api/points/summary'),
 
   pointsTransactions: () => request<{ list: any[] }>('/api/points/transactions'),
+  pointsDetail: () => request<{ balance: number; groups: PointDetailGroup[] }>('/api/points/detail'),
 
   mallItems: () => request<{ items: any[] }>('/api/mall/items'),
 
   redeem: (itemId: number) =>
-    request<{ ok: boolean; token: string; balance: number }>('/api/mall/redeem', {
+    request<{
+      ok: boolean;
+      token: string;
+      balance: number;
+      redemption: {
+        id: number;
+        orderNo: string;
+        itemName: string;
+        pointsCost: number;
+        status: string;
+        expiresAt: string;
+        writeoffToken: string;
+      };
+    }>('/api/mall/redeem', {
       method: 'POST',
       body: JSON.stringify({ itemId }),
     }),

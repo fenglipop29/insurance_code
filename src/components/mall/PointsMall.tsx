@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Info, Search, ShieldPlus, ShoppingBasket, Ticket } from 'lucide-react';
-import { motion } from 'motion/react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Info, Search, ShieldPlus, ShoppingBasket, Ticket } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { api } from '../../lib/api';
+import PointsDetailPage from './PointsDetailPage';
+import MyExchanges from '../profile/MyExchanges';
 
 interface Props {
   onClose: () => void;
   requireAuth: (action: () => void) => void;
+  balance: number;
   onBalanceChange?: (balance: number) => void;
 }
 
@@ -16,11 +19,24 @@ type MallItem = {
   stock: number;
 };
 
+const fallbackMallItems: MallItem[] = [
+  { id: 1, name: '智能低糖电饭煲', pointsCost: 99, stock: 50 },
+  { id: 2, name: '家庭体检套餐', pointsCost: 79, stock: 80 },
+  { id: 3, name: '健康管理咨询券', pointsCost: 59, stock: 999 },
+];
+
+type RedeemSuccess = {
+  orderNo: string;
+  itemName: string;
+  pointsCost: number;
+  balance: number;
+};
+
 const hotActivities = [
   {
     id: 1,
     title: '五常有机新米',
-    subtitle: '500积分起兑 | 产地直供',
+    subtitle: '59积分起兑 | 产地直供',
     badge: '限时抢兑',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDi55AJc1kQ9sTFmD_9uylMmqyEXVHtRK_7X9WtKMFoKU6zlQiXCoRyH4IVUhU5boVqvk_9y9341zXzETrpg362JlbR9XhZYnL_j1gmyeFg-i8znciSvGUbN7kW80kH18UWpRBnYmkmAkzJMO3oJfd47O0Wsd9keBpRsppBBtJZwXQ4TWDdXrKkOSxcOlLUIjtTlUJZzIAsQbfkol6letog8ewMdd-D83SEMeb1we-ZQXhX92t5Mfri9QQJWCYVVoxe4JtKsjW4D9k',
@@ -48,11 +64,14 @@ const fallbackProductImages = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCbdRnzH0CwTDApiCUg006g_b4JXat9DSNMOEeXaCeZ6iGT8fkfWux15k6SDdOKbQmCtLn_VuXGHnkwRuP3eEnWNKwdrmWUWvNxHuok7ZUnY2sOPuksOOj0_4-Vu6kU3RCj0D0pi9et2zU7SZsu8RvhTHXLTKmWxD3HTMI1KEpgTtLo5Y0qItVVFMJq1eBRvbEK4RRFnI4JhpbV-3fwjePFGI0De3qOwESnkNFz45gBiOFBDgcVmyZIeKboLtCofyKE-7J-ClMetg0',
 ];
 
-export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Props) {
-  const [balance, setBalance] = useState(0);
+export default function PointsMall({ onClose, requireAuth, balance, onBalanceChange }: Props) {
   const [items, setItems] = useState<MallItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showPointsDetail, setShowPointsDetail] = useState(false);
+  const [showMyExchanges, setShowMyExchanges] = useState(false);
+  const [redeemingItemId, setRedeemingItemId] = useState<number | null>(null);
+  const [redeemSuccess, setRedeemSuccess] = useState<RedeemSuccess | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -63,17 +82,17 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
 
       try {
         const summary = await api.pointsSummary();
-        setBalance(summary.balance);
         onBalanceChange?.(summary.balance);
       } catch (e: any) {
         // Mall should be browsable without login; points summary is best-effort.
         if (e?.code !== 'UNAUTHORIZED') {
           throw e;
         }
-        setBalance(0);
       }
     } catch (e: any) {
-      setError(e?.message || '加载失败');
+      // Keep page usable when backend is temporarily unavailable.
+      setItems(fallbackMallItems);
+      setError('');
     } finally {
       setLoading(false);
     }
@@ -94,20 +113,28 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
   );
 
   const handleRedeem = async (itemId: number) => {
+    if (redeemingItemId) return;
     try {
+      setRedeemingItemId(itemId);
       const res = await api.redeem(itemId);
-      setBalance(res.balance);
       onBalanceChange?.(res.balance);
       await loadData();
-      alert('兑换成功，可在“我的兑换”中核销');
+      setRedeemSuccess({
+        orderNo: res.redemption?.orderNo || `EX${res.redemption?.id || ''}`,
+        itemName: res.redemption?.itemName || '兑换商品',
+        pointsCost: res.redemption?.pointsCost || 0,
+        balance: res.balance,
+      });
     } catch (e: any) {
-      if (e?.code === 'NEED_BASIC_VERIFY') {
+      if (e?.code === 'NEED_BASIC_VERIFY' || e?.code === 'UNAUTHORIZED') {
         requireAuth(() => {
           handleRedeem(itemId).catch(() => undefined);
         });
         return;
       }
       alert(e?.message || '兑换失败');
+    } finally {
+      setRedeemingItemId(null);
     }
   };
 
@@ -138,7 +165,10 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
                 <p className="text-white/80 text-lg font-medium">我的可用积分</p>
                 <h2 className="text-white text-5xl font-bold mt-2">{balance.toLocaleString()}</h2>
               </div>
-              <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-1">
+              <button
+                onClick={() => requireAuth(() => setShowPointsDetail(true))}
+                className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-1"
+              >
                 <span className="text-base font-bold">积分明细</span>
                 <ChevronRight size={16} />
               </button>
@@ -192,7 +222,7 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
 
           <div className="grid grid-cols-2 gap-4">
             {products.map((item) => {
-              const disabled = item.stock <= 0 || balance < item.pointsCost;
+              const disabled = item.stock <= 0 || balance < item.pointsCost || redeemingItemId === item.id;
               return (
                 <article key={item.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100">
                   <div className="aspect-square w-full relative">
@@ -210,7 +240,7 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
                         disabled={disabled}
                         className="mt-2 w-full rounded-lg py-2 text-sm font-bold text-white bg-[#13a4ec] disabled:bg-sky-200"
                       >
-                        {item.stock <= 0 ? '已兑完' : balance < item.pointsCost ? '积分不足' : '立即兑换'}
+                        {item.stock <= 0 ? '已兑完' : balance < item.pointsCost ? '积分不足' : redeemingItemId === item.id ? '兑换中...' : '立即兑换'}
                       </button>
                     </div>
                   </div>
@@ -220,6 +250,55 @@ export default function PointsMall({ onClose, requireAuth, onBalanceChange }: Pr
           </div>
         </section>
       </main>
+
+      <AnimatePresence>
+        {showPointsDetail && <PointsDetailPage onClose={() => setShowPointsDetail(false)} initialBalance={balance} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {redeemSuccess && (
+          <div className="fixed inset-0 z-[65] bg-black/45 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+            <motion.div
+              initial={{ y: 24, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 24, opacity: 0 }}
+              className="w-full max-w-md bg-white rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-2 text-emerald-600 mb-4">
+                <CheckCircle2 size={22} />
+                <h3 className="text-lg font-bold">兑换成功</h3>
+              </div>
+              <div className="space-y-2 text-sm mb-6">
+                <p className="text-slate-700">商品：{redeemSuccess.itemName}</p>
+                <p className="text-slate-700">订单号：{redeemSuccess.orderNo}</p>
+                <p className="text-slate-700">消耗积分：-{redeemSuccess.pointsCost}</p>
+                <p className="text-slate-700">剩余积分：{redeemSuccess.balance}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setRedeemSuccess(null)}
+                  className="py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold"
+                >
+                  继续逛
+                </button>
+                <button
+                  onClick={() => {
+                    setRedeemSuccess(null);
+                    setShowMyExchanges(true);
+                  }}
+                  className="py-2.5 rounded-xl bg-[#13a4ec] text-white font-semibold"
+                >
+                  查看我的兑换
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showMyExchanges && <MyExchanges onClose={() => setShowMyExchanges(false)} />}
+      </AnimatePresence>
     </motion.div>
   );
 }

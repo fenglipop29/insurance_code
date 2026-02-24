@@ -9,6 +9,9 @@ import { registerMallRoutes } from './routes/mall.routes.mjs';
 import { registerRedemptionsRoutes } from './routes/redemptions.routes.mjs';
 import { registerLearningRoutes } from './routes/learning.routes.mjs';
 import { registerInsuranceRoutes } from './routes/insurance.routes.mjs';
+import { registerOrdersRoutes } from './routes/orders.routes.mjs';
+import { registerBAdminRoutes } from './routes/b-admin.routes.mjs';
+import { registerPAdminRoutes } from './routes/p-admin.routes.mjs';
 
 export function createSkeletonApp() {
   const app = express();
@@ -22,8 +25,11 @@ export function createSkeletonApp() {
   registerPointsRoutes(app);
   registerMallRoutes(app);
   registerRedemptionsRoutes(app);
+  registerOrdersRoutes(app);
   registerLearningRoutes(app);
   registerInsuranceRoutes(app);
+  registerBAdminRoutes(app);
+  registerPAdminRoutes(app);
 
   return app;
 }

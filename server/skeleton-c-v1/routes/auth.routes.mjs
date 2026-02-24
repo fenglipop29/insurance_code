@@ -69,8 +69,13 @@ export function registerAuthRoutes(app) {
 
     let user = state.users.find((u) => u.mobile === mobile);
     if (!user) {
+      const userId = nextId(state.users);
       user = {
-        id: nextId(state.users),
+        id: userId,
+        tenantId: 1,
+        orgId: 1,
+        teamId: 1,
+        ownerUserId: userId,
         name,
         mobile,
         isVerifiedBasic: true,
@@ -91,6 +96,10 @@ export function registerAuthRoutes(app) {
       user.name = name;
       user.isVerifiedBasic = true;
       user.verifiedAt = new Date().toISOString();
+      user.tenantId = Number(user.tenantId || 1);
+      user.orgId = Number(user.orgId || 1);
+      user.teamId = Number(user.teamId || 1);
+      user.ownerUserId = Number(user.ownerUserId || user.id);
     }
 
     const token = createSession(user.id);

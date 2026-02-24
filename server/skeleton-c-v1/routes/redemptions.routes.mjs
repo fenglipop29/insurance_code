@@ -1,5 +1,5 @@
 import { authRequired } from '../common/middleware.mjs';
-import { getState, persistState } from '../common/state.mjs';
+import { appendAuditLog, appendDomainEvent, getState, persistState } from '../common/state.mjs';
 
 export function registerRedemptionsRoutes(app) {
   app.get('/api/redemptions', authRequired, (req, res) => {
@@ -46,6 +46,22 @@ export function registerRedemptionsRoutes(app) {
 
     row.status = 'written_off';
     row.writtenOffAt = new Date().toISOString();
+    const order = state.orders?.find((item) => Number(item.id) === Number(row.orderId));
+    if (order) {
+      order.status = 'fulfilled';
+      order.fulfillmentStatus = 'written_off';
+      order.updatedAt = new Date().toISOString();
+    }
+    appendDomainEvent('redemption.written_off', { redemptionId: row.id, orderId: row.orderId || null, userId: req.user.id }, { tenantId: req.user.tenantId || 1 });
+    appendAuditLog({
+      tenantId: req.user.tenantId || 1,
+      actorType: 'customer',
+      actorId: req.user.id,
+      action: 'redemption.writeoff',
+      resourceType: 'redemption',
+      resourceId: String(row.id),
+      result: 'success',
+    });
     persistState();
     return res.json({ ok: true });
   });

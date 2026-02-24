@@ -53,6 +53,36 @@ export default function App() {
   const [user, setUser] = useState<User | null>(() => readCachedUser());
   const [pointsBalance, setPointsBalance] = useState(() => readCachedBalance());
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const applyBalance = (balance: number) => {
+    setPointsBalance(balance);
+    writeCachedBalance(balance);
+  };
+  const syncMe = () => {
+    const token = getToken();
+    if (!token) {
+      setUser(null);
+      applyBalance(0);
+      writeCachedUser(null);
+      return;
+    }
+    api
+      .me()
+      .then((res) => {
+        setUser(res.user);
+        applyBalance(res.balance);
+        writeCachedUser(res.user);
+      })
+      .catch((e: any) => {
+        if (e?.code === 'UNAUTHORIZED') {
+          clearToken();
+          setUser(null);
+          applyBalance(0);
+          writeCachedUser(null);
+          return;
+        }
+        // Keep current balance on transient network failure.
+      });
+  };
 
   useEffect(() => {
     if (currentTab !== 'home' || showAuthModal) return;
@@ -63,26 +93,18 @@ export default function App() {
   }, [currentTab, showAuthModal]);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) return;
+    syncMe();
 
-    api
-      .me()
-      .then((res) => {
-        setUser(res.user);
-        setPointsBalance(res.balance);
-        writeCachedUser(res.user);
-        writeCachedBalance(res.balance);
-      })
-      .catch((e: any) => {
-        if (e?.code === 'UNAUTHORIZED') {
-          clearToken();
-          setUser(null);
-          setPointsBalance(0);
-          writeCachedUser(null);
-          writeCachedBalance(0);
-        }
-      });
+    const timer = window.setInterval(() => {
+      syncMe();
+    }, 5000);
+    const onFocus = () => syncMe();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const requireAuth = (action: () => void) => {
@@ -110,16 +132,14 @@ export default function App() {
       const resolvedUser = me.user || nextUser;
       const resolvedBalance = Number(me.balance || 0);
       setUser(resolvedUser);
-      setPointsBalance(resolvedBalance);
+      applyBalance(resolvedBalance);
       writeCachedUser(resolvedUser);
-      writeCachedBalance(resolvedBalance);
     } catch (e: any) {
       if (e?.code === 'UNAUTHORIZED') {
         clearToken();
         setUser(null);
-        setPointsBalance(0);
+        applyBalance(0);
         writeCachedUser(null);
-        writeCachedBalance(0);
       }
     }
   };
@@ -137,7 +157,14 @@ export default function App() {
       {currentTab === 'home' && <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} />}
       {currentTab === 'learning' && <Learning />}
       {currentTab === 'insurance' && <InsuranceManagement />}
-      {currentTab === 'activities' && <Activities requireAuth={requireAuth} onOpenMall={openPointsMall} />}
+      {currentTab === 'activities' && (
+        <Activities
+          requireAuth={requireAuth}
+          onOpenMall={openPointsMall}
+          pointsBalance={pointsBalance}
+          onBalanceChange={applyBalance}
+        />
+      )}
       {currentTab === 'profile' && (
         <Profile
           requireAuth={requireAuth}
@@ -145,6 +172,7 @@ export default function App() {
           user={user}
           pointsBalance={pointsBalance}
           onOpenMall={openPointsMall}
+          onGoInsurance={() => setCurrentTab('insurance')}
         />
       )}
       {currentTab === 'advisor' && <AdvisorDetail onClose={() => setCurrentTab('home')} />}
@@ -176,7 +204,8 @@ export default function App() {
           <PointsMall
             onClose={() => setShowPointsMall(false)}
             requireAuth={requireAuth}
-            onBalanceChange={setPointsBalance}
+            balance={pointsBalance}
+            onBalanceChange={applyBalance}
           />
         )}
       </AnimatePresence>

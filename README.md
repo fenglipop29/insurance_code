@@ -49,3 +49,8 @@ Core endpoints implemented:
 - `POST /api/mall/redeem`
 - `GET /api/redemptions`
 - `POST /api/redemptions/:id/writeoff`
+
+## Documentation Index
+
+- Docs index: `/Users/wenshuping/Documents/New project/insurance_code/docs/INDEX.md`
+- Hybrid architecture roadmap (new): `/Users/wenshuping/Documents/New project/insurance_code/docs/architecture-hybrid-roadmap-v2.md`

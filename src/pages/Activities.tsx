@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { HelpCircle, ShoppingBag, CheckCircle2, BookOpen, Share2, Shield, Users } from 'lucide-react';
+import { HelpCircle, ShoppingBag, CheckCircle2, Share2, Shield, Users } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import ActivityDetail from '../components/activities/ActivityDetail';
 import { api, type Activity } from '../lib/api';
@@ -7,6 +7,8 @@ import { api, type Activity } from '../lib/api';
 interface Props {
   requireAuth: (action: () => void) => void;
   onOpenMall: () => void;
+  pointsBalance: number;
+  onBalanceChange: (balance: number) => void;
 }
 
 const categoryBadge: Record<string, { label: string; className: string }> = {
@@ -23,8 +25,7 @@ function iconByCategory(category: string) {
   return Users;
 }
 
-export default function Activities({ requireAuth, onOpenMall }: Props) {
-  const [points, setPoints] = useState(0);
+export default function Activities({ requireAuth, onOpenMall, pointsBalance, onBalanceChange }: Props) {
   const [tasksCompleted, setTasksCompleted] = useState(0);
   const [tasksTotal, setTasksTotal] = useState(0);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
@@ -34,7 +35,9 @@ export default function Activities({ requireAuth, onOpenMall }: Props) {
     try {
       const res = await api.activities();
       setActivities(res.activities || []);
-      setPoints(res.balance || 0);
+      if (typeof res.balance === 'number' && Number.isFinite(res.balance)) {
+        onBalanceChange(res.balance);
+      }
       setTasksCompleted(res.taskProgress?.completed || 0);
       setTasksTotal(res.taskProgress?.total || 0);
     } catch (e) {
@@ -59,11 +62,11 @@ export default function Activities({ requireAuth, onOpenMall }: Props) {
       try {
         if (activity.category === 'sign') {
           const res = await api.signIn();
-          setPoints(res.balance);
+          onBalanceChange(res.balance);
           alert(`签到成功，获得${res.reward}积分！`);
         } else {
           const res = await api.completeActivity(activity.id);
-          setPoints(res.balance);
+          onBalanceChange(res.balance);
           alert(`任务完成，获得${res.reward}积分！`);
         }
         await loadActivities();
@@ -113,7 +116,7 @@ export default function Activities({ requireAuth, onOpenMall }: Props) {
               <div>
                 <p className="text-slate-500 text-sm font-medium mb-1">我的积分</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-blue-500">{points}</span>
+                  <span className="text-3xl font-bold text-blue-500">{pointsBalance}</span>
                   <span className="text-xs text-slate-400 font-bold">分</span>
                 </div>
               </div>
