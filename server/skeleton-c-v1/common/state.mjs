@@ -103,7 +103,8 @@ export async function initializeState() {
     else assignState(loadStateFromFile());
 
     const normalized = normalizeMallPricingForDemo();
-    if (normalized || !loaded) {
+    const seeded = ensureDomainSeedsFromFile();
+    if (normalized || seeded || !loaded) {
       await writeStateToPostgresTables();
     }
   } else {
@@ -484,6 +485,50 @@ function normalizeMallPricingForDemo() {
     changed = true;
     return { ...item, pointsCost: target };
   });
+  return changed;
+}
+
+function ensureDomainSeedsFromFile() {
+  const fileState = loadStateFromFile();
+  let changed = false;
+
+  const fillArray = (key) => {
+    if (ensureArray(state[key]).length > 0) return;
+    const fromFile = ensureArray(fileState[key]);
+    if (fromFile.length === 0) return;
+    state[key] = structuredClone(fromFile);
+    changed = true;
+  };
+
+  fillArray('learningCourses');
+  fillArray('learningGames');
+  fillArray('learningTools');
+  fillArray('familyMembers');
+  fillArray('insuranceReminders');
+  fillArray('policies');
+
+  if ((!state.insuranceSummary || Object.keys(state.insuranceSummary).length === 0) && fileState.insuranceSummary) {
+    state.insuranceSummary = structuredClone(fileState.insuranceSummary);
+    changed = true;
+  }
+  if (ensureArray(state.policies).length > 0) {
+    const current = state.insuranceSummary || {};
+    const shouldRebuild =
+      !current ||
+      Object.keys(current).length === 0 ||
+      Number(current.activePolicies || 0) === 0 ||
+      Number(current.totalCoverage || 0) === 0;
+    if (shouldRebuild) {
+      state.insuranceSummary = buildInsuranceSummary(state.policies, Number(current.healthScore || 85));
+      changed = true;
+    }
+  }
+
+  if ((!state.insuranceSummary || Object.keys(state.insuranceSummary).length === 0) && ensureArray(state.policies).length > 0) {
+    state.insuranceSummary = buildInsuranceSummary(state.policies, 85);
+    changed = true;
+  }
+
   return changed;
 }
 
