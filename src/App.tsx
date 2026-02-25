@@ -53,6 +53,9 @@ export default function App() {
   const [user, setUser] = useState<User | null>(() => readCachedUser());
   const [pointsBalance, setPointsBalance] = useState(() => readCachedBalance());
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const track = (event: string, properties: Record<string, unknown> = {}) => {
+    api.trackEvent({ event, properties }).catch(() => undefined);
+  };
   const applyBalance = (balance: number) => {
     setPointsBalance(balance);
     writeCachedBalance(balance);
@@ -93,6 +96,10 @@ export default function App() {
   }, [currentTab, showAuthModal]);
 
   useEffect(() => {
+    track('c_page_view', { tab: currentTab, authed: Boolean(user?.is_verified_basic) });
+  }, [currentTab, user?.is_verified_basic]);
+
+  useEffect(() => {
     syncMe();
 
     const timer = window.setInterval(() => {
@@ -122,6 +129,7 @@ export default function App() {
     setUser(nextUser);
     writeCachedUser(nextUser);
     setShowAuthModal(false);
+    track('c_auth_verified', { userId: nextUser.id });
 
     const action = pendingAction;
     setPendingAction(null);
@@ -145,16 +153,37 @@ export default function App() {
   };
 
   const openPointsMall = () => {
+    track('c_click_points_mall', { fromTab: currentTab });
     setShowPointsMall(true);
   };
 
   const openAdvisorDetail = () => {
+    track('c_click_advisor_detail', { fromTab: currentTab });
     setCurrentTab('advisor');
+  };
+
+  const handleSignIn = async () => {
+    try {
+      const res = await api.signIn();
+      applyBalance(Number(res.balance || 0));
+      track('c_sign_in_success', { reward: Number(res.reward || 0), balance: Number(res.balance || 0) });
+      alert(`签到成功，获得${res.reward}积分！`);
+    } catch (e: any) {
+      if (e?.code === 'ALREADY_SIGNED') {
+        track('c_sign_in_repeat', {});
+        alert('今日已签到');
+        return;
+      }
+      track('c_sign_in_failed', { code: String(e?.code || 'UNKNOWN') });
+      alert(e?.message || '签到失败');
+    }
   };
 
   return (
     <div className="bg-slate-50 min-h-screen flex flex-col font-sans text-slate-900">
-      {currentTab === 'home' && <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} />}
+      {currentTab === 'home' && (
+        <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} onSignIn={handleSignIn} />
+      )}
       {currentTab === 'learning' && <Learning />}
       {currentTab === 'insurance' && <InsuranceManagement />}
       {currentTab === 'activities' && (
@@ -184,7 +213,7 @@ export default function App() {
           onClose={() => setShowMarketingPopup(false)}
           onAction={() => {
             setShowMarketingPopup(false);
-            requireAuth(() => alert('签到成功，获得50积分！'));
+            requireAuth(handleSignIn);
           }}
         />
       )}

@@ -94,6 +94,11 @@ export type Activity = {
   canComplete?: boolean;
 };
 
+export type TrackPayload = {
+  event: string;
+  properties?: Record<string, unknown>;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -239,6 +244,16 @@ export const api = {
   }) =>
     request<{ ok: boolean; policy: InsurancePolicy }>('/api/insurance/policies', {
       method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  trackEvent: (payload: TrackPayload) =>
+    request<{ ok: boolean }>('/api/track/events', {
+      method: 'POST',
+      headers: {
+        'x-client-source': 'c-web',
+        'x-client-path': typeof window === 'undefined' ? '' : window.location.pathname,
+      },
       body: JSON.stringify(payload),
     }),
 };

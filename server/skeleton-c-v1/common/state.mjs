@@ -24,6 +24,7 @@ const initialState = {
   userRoles: [],
   approvals: [],
   auditLogs: [],
+  trackEvents: [],
   idempotencyRecords: [],
   domainEvents: [],
   outboxEvents: [],
@@ -210,6 +211,15 @@ export function appendAuditLog(entry) {
   if (!Array.isArray(state.auditLogs)) state.auditLogs = [];
   state.auditLogs.push({
     id: nextId(state.auditLogs),
+    createdAt: new Date().toISOString(),
+    ...entry,
+  });
+}
+
+export function appendTrackEvent(entry) {
+  if (!Array.isArray(state.trackEvents)) state.trackEvents = [];
+  state.trackEvents.push({
+    id: nextId(state.trackEvents),
     createdAt: new Date().toISOString(),
     ...entry,
   });
@@ -479,124 +489,13 @@ function normalizeMallPricingForDemo() {
 
 async function ensureRelationalSchema() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id BIGINT PRIMARY KEY,
-      name TEXT NOT NULL,
-      mobile_enc TEXT NOT NULL,
-      mobile_masked TEXT NOT NULL,
-      is_verified_basic BOOLEAN NOT NULL DEFAULT FALSE,
-      verified_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS point_accounts (
-      user_id BIGINT PRIMARY KEY,
-      balance INT NOT NULL DEFAULT 0,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS point_transactions (
-      id BIGINT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
-      direction TEXT NOT NULL CHECK (direction IN ('in', 'out')),
-      amount INT NOT NULL CHECK (amount >= 0),
-      source_type TEXT NOT NULL,
-      source_id TEXT NOT NULL,
-      idempotency_key TEXT NOT NULL UNIQUE,
-      balance_after INT NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS mall_items (
-      id BIGINT PRIMARY KEY,
-      name TEXT NOT NULL,
-      points_cost INT NOT NULL,
-      stock INT NOT NULL DEFAULT 0,
-      is_active BOOLEAN NOT NULL DEFAULT TRUE,
-      sort_order INT NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS redemption_orders (
-      id BIGINT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
-      item_id BIGINT NOT NULL,
-      item_name TEXT NOT NULL DEFAULT '',
-      points_cost INT NOT NULL,
-      writeoff_token TEXT NOT NULL UNIQUE,
-      status TEXT NOT NULL DEFAULT 'pending',
-      expires_at TIMESTAMPTZ,
-      written_off_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS learning_courses (
-      id BIGINT PRIMARY KEY,
-      title TEXT NOT NULL,
-      course_desc TEXT,
-      type TEXT,
-      type_label TEXT,
-      progress INT NOT NULL DEFAULT 0,
-      time_left TEXT,
-      image TEXT,
-      action TEXT,
-      color TEXT,
-      btn_color TEXT,
-      points INT NOT NULL DEFAULT 0,
-      category TEXT,
-      content TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS learning_course_completions (
-      id BIGINT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
-      course_id BIGINT NOT NULL,
-      points_awarded INT NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS insurance_policies (
-      id BIGINT PRIMARY KEY,
-      user_id BIGINT,
-      company TEXT NOT NULL,
-      name TEXT NOT NULL,
-      type TEXT,
-      icon TEXT,
-      amount BIGINT NOT NULL DEFAULT 0,
-      next_payment DATE,
-      status TEXT,
-      applicant TEXT,
-      insured TEXT,
-      period_start DATE,
-      period_end TEXT,
-      annual_premium BIGINT NOT NULL DEFAULT 0,
-      payment_period TEXT,
-      coverage_period TEXT,
-      policy_no TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS policy_responsibilities (
-      id BIGINT PRIMARY KEY,
-      policy_id BIGINT NOT NULL,
-      name TEXT NOT NULL,
-      description TEXT,
-      limit_amount BIGINT NOT NULL DEFAULT 0,
-      sort_order INT NOT NULL DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS policy_payment_history (
-      id BIGINT PRIMARY KEY,
-      policy_id BIGINT NOT NULL,
-      payment_date DATE NOT NULL,
-      amount BIGINT NOT NULL,
-      note TEXT,
-      status TEXT,
-      sort_order INT NOT NULL DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS app_sessions (
+    CREATE TABLE IF NOT EXISTS p_sessions (
       token TEXT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
+      customer_id BIGINT NOT NULL REFERENCES c_customers(id),
       expires_at TIMESTAMPTZ NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_sms_codes (
+    CREATE TABLE IF NOT EXISTS p_sms_codes (
       id BIGINT PRIMARY KEY,
       mobile TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -604,11 +503,11 @@ async function ensureRelationalSchema() {
       used BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_orders (
+    CREATE TABLE IF NOT EXISTS p_orders (
       id BIGINT PRIMARY KEY,
       tenant_id BIGINT NOT NULL DEFAULT 1,
-      customer_id BIGINT NOT NULL,
-      product_id BIGINT NOT NULL,
+      customer_id BIGINT NOT NULL REFERENCES c_customers(id),
+      product_id BIGINT NOT NULL REFERENCES p_products(id),
       product_name TEXT NOT NULL,
       quantity INT NOT NULL DEFAULT 1,
       points_amount INT NOT NULL DEFAULT 0,
@@ -620,71 +519,85 @@ async function ensureRelationalSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_order_payments (
+    CREATE TABLE IF NOT EXISTS p_order_payments (
       id BIGINT PRIMARY KEY,
       tenant_id BIGINT NOT NULL DEFAULT 1,
-      order_id BIGINT NOT NULL,
+      order_id BIGINT NOT NULL REFERENCES p_orders(id),
       payment_method TEXT NOT NULL,
       payment_status TEXT NOT NULL,
       amount INT NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_order_fulfillments (
+    CREATE TABLE IF NOT EXISTS p_order_fulfillments (
       id BIGINT PRIMARY KEY,
       tenant_id BIGINT NOT NULL DEFAULT 1,
-      order_id BIGINT NOT NULL,
+      order_id BIGINT NOT NULL REFERENCES p_orders(id),
       mode TEXT NOT NULL,
       operator_agent_id BIGINT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_order_refunds (
+    CREATE TABLE IF NOT EXISTS p_order_refunds (
       id BIGINT PRIMARY KEY,
       tenant_id BIGINT NOT NULL DEFAULT 1,
-      order_id BIGINT NOT NULL,
+      order_id BIGINT NOT NULL REFERENCES p_orders(id),
       refund_type TEXT NOT NULL,
       status TEXT NOT NULL,
       reason TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_redemptions (
+    CREATE TABLE IF NOT EXISTS c_activity_completions (
       id BIGINT PRIMARY KEY,
-      order_id BIGINT,
-      user_id BIGINT NOT NULL,
-      item_id BIGINT NOT NULL,
-      points_cost INT NOT NULL,
-      status TEXT NOT NULL,
-      writeoff_token TEXT NOT NULL UNIQUE,
-      expires_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      written_off_at TIMESTAMPTZ
-    );
-    CREATE TABLE IF NOT EXISTS app_b_write_off_records (
-      id BIGINT PRIMARY KEY,
-      tenant_id BIGINT NOT NULL DEFAULT 1,
-      redeem_record_id BIGINT NOT NULL,
-      operator_agent_id BIGINT NOT NULL,
-      writeoff_token TEXT NOT NULL,
-      status TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS app_activity_completions (
-      id BIGINT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
-      activity_id BIGINT NOT NULL,
+      tenant_id BIGINT NOT NULL DEFAULT 1 REFERENCES p_tenants(id),
+      customer_id BIGINT NOT NULL REFERENCES c_customers(id),
+      activity_id BIGINT NOT NULL REFERENCES p_activities(id),
       completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_sign_ins (
+    CREATE TABLE IF NOT EXISTS c_sign_ins (
       id BIGINT PRIMARY KEY,
-      user_id BIGINT NOT NULL,
+      tenant_id BIGINT NOT NULL DEFAULT 1 REFERENCES p_tenants(id),
+      customer_id BIGINT NOT NULL REFERENCES c_customers(id),
       sign_date DATE NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE IF NOT EXISTS app_idempotency_records (
+    CREATE TABLE IF NOT EXISTS p_idempotency_records (
       id BIGINT PRIMARY KEY,
       tenant_id BIGINT NOT NULL DEFAULT 1,
       biz_type TEXT NOT NULL,
       biz_key TEXT NOT NULL,
       response JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS c_policy_responsibilities (
+      id BIGINT PRIMARY KEY,
+      tenant_id BIGINT NOT NULL DEFAULT 1 REFERENCES p_tenants(id),
+      policy_id BIGINT NOT NULL REFERENCES c_policies(id),
+      name TEXT NOT NULL,
+      description TEXT,
+      limit_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+      sort_order INT NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS c_policy_payment_history (
+      id BIGINT PRIMARY KEY,
+      tenant_id BIGINT NOT NULL DEFAULT 1 REFERENCES p_tenants(id),
+      policy_id BIGINT NOT NULL REFERENCES c_policies(id),
+      payment_date DATE NOT NULL,
+      amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+      note TEXT,
+      status TEXT,
+      sort_order INT NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS p_track_events (
+      id BIGINT PRIMARY KEY,
+      tenant_id BIGINT NOT NULL DEFAULT 1,
+      actor_type TEXT NOT NULL,
+      actor_id BIGINT NOT NULL DEFAULT 0,
+      org_id BIGINT NOT NULL DEFAULT 1,
+      team_id BIGINT NOT NULL DEFAULT 1,
+      event_name TEXT NOT NULL,
+      properties JSONB,
+      path TEXT,
+      source TEXT,
+      user_agent TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
@@ -694,42 +607,41 @@ function ensureArray(v) {
   return Array.isArray(v) ? v : [];
 }
 
+function toFiniteNumber(value, fallback = null) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 async function loadStateFromPostgresTables() {
-  const usersRows = (await pool.query('SELECT * FROM users ORDER BY id ASC')).rows;
-  const accountsRows = (await pool.query('SELECT * FROM point_accounts ORDER BY user_id ASC')).rows;
-  const txRows = (await pool.query('SELECT * FROM point_transactions ORDER BY id ASC')).rows;
-  const mallRows = (await pool.query('SELECT * FROM mall_items ORDER BY id ASC')).rows;
-  const appRedemptionRows = (await pool.query('SELECT * FROM app_redemptions ORDER BY id ASC')).rows;
-  const legacyRedemptionRows = (await pool.query('SELECT * FROM redemption_orders ORDER BY id ASC')).rows;
-  const sessionsRows = (await pool.query('SELECT * FROM app_sessions ORDER BY created_at ASC')).rows;
-  const smsRows = (await pool.query('SELECT * FROM app_sms_codes ORDER BY id ASC')).rows;
-  const orderRows = (await pool.query('SELECT * FROM app_orders ORDER BY id ASC')).rows;
-  const orderPaymentRows = (await pool.query('SELECT * FROM app_order_payments ORDER BY id ASC')).rows;
-  const orderFulfillmentRows = (await pool.query('SELECT * FROM app_order_fulfillments ORDER BY id ASC')).rows;
-  const orderRefundRows = (await pool.query('SELECT * FROM app_order_refunds ORDER BY id ASC')).rows;
-  const writeoffRows = (await pool.query('SELECT * FROM app_b_write_off_records ORDER BY id ASC')).rows;
-  const learningRows = (await pool.query('SELECT * FROM learning_courses ORDER BY id ASC')).rows;
-  const completionRows = (await pool.query('SELECT * FROM learning_course_completions ORDER BY id ASC')).rows;
-  const policyRows = (await pool.query('SELECT * FROM insurance_policies ORDER BY id ASC')).rows;
-  const responsibilityRows = (await pool.query('SELECT * FROM policy_responsibilities ORDER BY sort_order ASC, id ASC')).rows;
-  const paymentHistoryRows = (await pool.query('SELECT * FROM policy_payment_history ORDER BY sort_order ASC, id ASC')).rows;
-  const activityCompletionRows = (await pool.query('SELECT * FROM app_activity_completions ORDER BY id ASC')).rows;
-  const signInRows = (await pool.query('SELECT * FROM app_sign_ins ORDER BY id ASC')).rows;
-  const idemRows = (await pool.query('SELECT * FROM app_idempotency_records ORDER BY id ASC')).rows;
+  const usersRows = (await pool.query('SELECT * FROM c_customers WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const txRows = (await pool.query('SELECT * FROM c_point_transactions WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const mallRows = (await pool.query('SELECT * FROM p_products WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const redemptionsRows = (await pool.query('SELECT * FROM c_redeem_records WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const sessionsRows = (await pool.query('SELECT * FROM p_sessions ORDER BY created_at ASC')).rows;
+  const smsRows = (await pool.query('SELECT * FROM p_sms_codes ORDER BY id ASC')).rows;
+  const orderRows = (await pool.query('SELECT * FROM p_orders ORDER BY id ASC')).rows;
+  const orderPaymentRows = (await pool.query('SELECT * FROM p_order_payments ORDER BY id ASC')).rows;
+  const orderFulfillmentRows = (await pool.query('SELECT * FROM p_order_fulfillments ORDER BY id ASC')).rows;
+  const orderRefundRows = (await pool.query('SELECT * FROM p_order_refunds ORDER BY id ASC')).rows;
+  const writeoffRows = (await pool.query('SELECT * FROM b_write_off_records WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const learningRows = (await pool.query('SELECT * FROM p_learning_materials WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const completionRows = (await pool.query('SELECT * FROM c_learning_records WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const policyRows = (await pool.query('SELECT * FROM c_policies WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const responsibilityRows = (await pool.query('SELECT * FROM c_policy_responsibilities ORDER BY sort_order ASC, id ASC')).rows;
+  const paymentHistoryRows = (await pool.query('SELECT * FROM c_policy_payment_history ORDER BY sort_order ASC, id ASC')).rows;
+  const activitiesRows = (await pool.query('SELECT * FROM p_activities WHERE is_deleted = FALSE ORDER BY id ASC')).rows;
+  const activityCompletionRows = (await pool.query('SELECT * FROM c_activity_completions ORDER BY id ASC')).rows;
+  const signInRows = (await pool.query('SELECT * FROM c_sign_ins ORDER BY id ASC')).rows;
+  const idemRows = (await pool.query('SELECT * FROM p_idempotency_records ORDER BY id ASC')).rows;
+  const trackRows = (await pool.query('SELECT * FROM p_track_events ORDER BY id ASC')).rows;
 
   const hasAnyData =
-    usersRows.length ||
-    accountsRows.length ||
-    txRows.length ||
-    mallRows.length ||
-    legacyRedemptionRows.length ||
-    learningRows.length ||
-    policyRows.length;
+    usersRows.length || txRows.length || mallRows.length || redemptionsRows.length || learningRows.length || policyRows.length;
   if (!hasAnyData) return null;
 
   const txMapped = txRows.map((row) => ({
     id: Number(row.id),
-    userId: Number(row.user_id),
+    userId: Number(row.customer_id),
     type: row.direction === 'out' ? 'consume' : 'earn',
     amount: Number(row.amount || 0),
     source: row.source_type || '',
@@ -740,11 +652,7 @@ async function loadStateFromPostgresTables() {
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
   }));
 
-  const accountsMapped = accountsRows.map((row) => ({
-    userId: Number(row.user_id),
-    balance: Number(row.balance || 0),
-    updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
-  }));
+  const accountsMapped = [];
   if (!accountsMapped.length && txMapped.length) {
     const latestByUser = new Map();
     for (const tx of txMapped) {
@@ -762,18 +670,18 @@ async function loadStateFromPostgresTables() {
 
   const responsibilitiesByPolicy = new Map();
   for (const row of responsibilityRows) {
-    const key = Number(row.policy_id);
+    const key = Number(row.policy_id || row.c_policy_id);
     if (!responsibilitiesByPolicy.has(key)) responsibilitiesByPolicy.set(key, []);
     responsibilitiesByPolicy.get(key).push({
       name: row.name,
-      desc: row.description || row.desc || '',
+      desc: row.description || '',
       limit: Number(row.limit_amount || 0),
     });
   }
 
   const paymentHistoryByPolicy = new Map();
   for (const row of paymentHistoryRows) {
-    const key = Number(row.policy_id);
+    const key = Number(row.policy_id || row.c_policy_id);
     if (!paymentHistoryByPolicy.has(key)) paymentHistoryByPolicy.set(key, []);
     paymentHistoryByPolicy.get(key).push({
       date: row.payment_date ? new Date(row.payment_date).toISOString().slice(0, 10) : '',
@@ -785,31 +693,31 @@ async function loadStateFromPostgresTables() {
 
   const mappedPolicies = policyRows.map((row) => ({
     id: Number(row.id),
-    company: row.company,
-    name: row.name,
-    type: row.type || '',
+    company: row.company || '',
+    name: row.policy_name || row.name || '',
+    type: row.policy_type || row.type || '',
     amount: Number(row.amount || 0),
-    nextPayment: row.next_payment ? new Date(row.next_payment).toISOString().slice(0, 10) : null,
-    status: row.status || '',
-    applicant: row.applicant || '',
-    insured: row.insured || '',
+    nextPayment: row.period_start ? new Date(row.period_start).toISOString().slice(0, 10) : null,
+    status: row.status === 'active' ? '保障中' : row.status || '',
+    applicant: '',
+    insured: '',
     periodStart: row.period_start ? new Date(row.period_start).toISOString().slice(0, 10) : null,
     periodEnd: row.period_end || '',
     annualPremium: Number(row.annual_premium || 0),
-    paymentPeriod: row.payment_period || '',
-    coveragePeriod: row.coverage_period || '',
+    paymentPeriod: '',
+    coveragePeriod: '',
     policyNo: row.policy_no || '',
-    createdBy: Number(row.user_id || 0),
+    createdBy: Number(row.customer_id || 0),
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
     responsibilities: responsibilitiesByPolicy.get(Number(row.id)) || [],
     paymentHistory: paymentHistoryByPolicy.get(Number(row.id)) || [],
   }));
 
-  const redemptions = (appRedemptionRows.length ? appRedemptionRows : legacyRedemptionRows).map((row) => ({
+  const redemptions = redemptionsRows.map((row) => ({
     id: Number(row.id),
-    orderId: Number(row.order_id || 0) || null,
-    userId: Number(row.user_id),
-    itemId: Number(row.item_id),
+    orderId: null,
+    userId: Number(row.customer_id),
+    itemId: Number(row.product_id),
     pointsCost: Number(row.points_cost || 0),
     status: row.status,
     writeoffToken: row.writeoff_token,
@@ -824,10 +732,10 @@ async function loadStateFromPostgresTables() {
     ...structuredClone(initialState),
     users: usersRows.map((row) => ({
       id: Number(row.id),
-      tenantId: 1,
+      tenantId: Number(row.tenant_id || 1),
       orgId: 1,
       teamId: 1,
-      ownerUserId: Number(row.id),
+      ownerUserId: Number(row.owner_agent_id || row.id),
       name: row.name,
       mobile: row.mobile_enc || row.mobile_masked || '',
       isVerifiedBasic: Boolean(row.is_verified_basic),
@@ -836,17 +744,28 @@ async function loadStateFromPostgresTables() {
     })),
     pointAccounts: accountsMapped,
     pointTransactions: txMapped,
+    activities:
+      activitiesRows.length > 0
+        ? activitiesRows.map((row) => ({
+            id: Number(row.id),
+            title: row.title,
+            category: row.category,
+            rewardPoints: Number(row.reward_points || 0),
+            sortOrder: Number(row.sort_order || 0),
+            participants: 0,
+          }))
+        : structuredClone(initialState.activities),
     mallItems: mallRows.map((row) => ({
       id: Number(row.id),
       name: row.name,
       pointsCost: Number(row.points_cost || 0),
       stock: Number(row.stock || 0),
-      isActive: Boolean(row.is_active),
+      isActive: row.shelf_status === 'on',
     })),
     redemptions,
     sessions: sessionsRows.map((row) => ({
       token: row.token,
-      userId: Number(row.user_id),
+      userId: Number(row.customer_id),
       expiresAt: new Date(row.expires_at).toISOString(),
       createdAt: new Date(row.created_at).toISOString(),
     })),
@@ -912,23 +831,23 @@ async function loadStateFromPostgresTables() {
     learningCourses: learningRows.map((row) => ({
       id: Number(row.id),
       title: row.title,
-      desc: row.course_desc || row.desc || '',
-      type: row.type || 'article',
-      typeLabel: row.type_label || '',
-      progress: Number(row.progress || 0),
-      timeLeft: row.time_left || '',
-      image: row.image || '',
-      action: row.action || '',
-      color: row.color || '',
-      btnColor: row.btn_color || '',
-      points: Number(row.points || 0),
+      desc: '',
+      type: row.material_type || 'article',
+      typeLabel: '',
+      progress: 0,
+      timeLeft: '',
+      image: row.content_url || '',
+      action: '',
+      color: '',
+      btnColor: '',
+      points: 0,
       category: row.category || '',
-      content: row.content || '',
+      content: row.content_url || '',
     })),
     courseCompletions: completionRows.map((row) => ({
       id: Number(row.id),
-      userId: Number(row.user_id),
-      courseId: Number(row.course_id),
+      userId: Number(row.customer_id),
+      courseId: Number(row.material_id || 0),
       pointsAwarded: Number(row.points_awarded || 0),
       createdAt: new Date(row.created_at).toISOString(),
     })),
@@ -936,13 +855,13 @@ async function loadStateFromPostgresTables() {
     insuranceSummary,
     activityCompletions: activityCompletionRows.map((row) => ({
       id: Number(row.id),
-      userId: Number(row.user_id),
+      userId: Number(row.customer_id),
       activityId: Number(row.activity_id),
       completedAt: new Date(row.completed_at).toISOString(),
     })),
     signIns: signInRows.map((row) => ({
       id: Number(row.id),
-      userId: Number(row.user_id),
+      userId: Number(row.customer_id),
       signDate: new Date(row.sign_date).toISOString().slice(0, 10),
       createdAt: new Date(row.created_at).toISOString(),
     })),
@@ -952,6 +871,20 @@ async function loadStateFromPostgresTables() {
       bizType: row.biz_type,
       bizKey: row.biz_key,
       response: row.response || null,
+      createdAt: new Date(row.created_at).toISOString(),
+    })),
+    trackEvents: trackRows.map((row) => ({
+      id: Number(row.id),
+      tenantId: Number(row.tenant_id || 1),
+      actorType: row.actor_type || 'anonymous',
+      actorId: Number(row.actor_id || 0),
+      orgId: Number(row.org_id || 1),
+      teamId: Number(row.team_id || 1),
+      event: row.event_name || '',
+      properties: row.properties || {},
+      path: row.path || '',
+      source: row.source || '',
+      userAgent: row.user_agent || '',
       createdAt: new Date(row.created_at).toISOString(),
     })),
   };
@@ -968,7 +901,12 @@ async function truncateAndInsert(client, tableName, columns, rows) {
   await client.query(`DELETE FROM ${tableName}`);
   if (!rows.length) return;
   for (const row of rows) {
-    const values = columns.map((col) => (row[col] === undefined ? null : row[col]));
+    const values = columns.map((col) => {
+      const raw = row[col];
+      if (raw === undefined) return null;
+      if (typeof raw === 'number' && !Number.isFinite(raw)) return null;
+      return raw;
+    });
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
     await client.query(`INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`, values);
   }
@@ -985,6 +923,7 @@ async function writeStateToPostgresTables() {
       for (const [idx, item] of ensureArray(policy.responsibilities).entries()) {
         responsibilitiesRows.push({
           id: nextId(responsibilitiesRows),
+          tenant_id: 1,
           policy_id: Number(policy.id),
           name: item.name || '',
           description: item.desc || '',
@@ -995,6 +934,7 @@ async function writeStateToPostgresTables() {
       for (const [idx, item] of ensureArray(policy.paymentHistory).entries()) {
         paymentHistoryRows.push({
           id: nextId(paymentHistoryRows),
+          tenant_id: 1,
           policy_id: Number(policy.id),
           payment_date: item.date || dateOnly(),
           amount: Number(item.amount || 0),
@@ -1005,216 +945,200 @@ async function writeStateToPostgresTables() {
       }
     }
 
+    await client.query(`
+      INSERT INTO p_tenants (id, tenant_code, tenant_type, name, status, package_name, quota_max_customers, quota_max_templates, created_at, updated_at, is_deleted)
+      VALUES (1, 'default', 'company', '默认租户', 'active', 'default', 0, 0, NOW(), NOW(), FALSE)
+      ON CONFLICT (id) DO NOTHING
+    `);
+
+    const clearOrder = [
+      'p_track_events',
+      'b_write_off_records',
+      'c_redeem_records',
+      'p_order_refunds',
+      'p_order_fulfillments',
+      'p_order_payments',
+      'p_orders',
+      'c_activity_completions',
+      'c_sign_ins',
+      'p_sessions',
+      'p_sms_codes',
+      'p_idempotency_records',
+      'c_learning_records',
+      'p_learning_materials',
+      'c_policy_payment_history',
+      'c_policy_responsibilities',
+      'c_policies',
+      'c_point_transactions',
+      'p_activities',
+      'p_products',
+      'b_agents',
+      'c_customers',
+    ];
+    for (const tableName of clearOrder) {
+      await client.query(`DELETE FROM ${tableName}`);
+    }
+
     await truncateAndInsert(
       client,
-      'users',
-      ['id', 'name', 'mobile_enc', 'mobile_masked', 'is_verified_basic', 'verified_at', 'created_at', 'updated_at'],
+      'c_customers',
+      ['id', 'tenant_id', 'owner_agent_id', 'name', 'mobile_enc', 'mobile_masked', 'is_verified_basic', 'verified_at', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
       ensureArray(state.users).map((row) => ({
         id: Number(row.id),
+        tenant_id: Number(row.tenantId || 1),
+        owner_agent_id: Number(row.ownerUserId || row.id || 0) || null,
         name: row.name || '',
         mobile_enc: row.mobile || '',
         mobile_masked: row.mobile || '',
         is_verified_basic: Boolean(row.isVerifiedBasic),
         verified_at: row.verifiedAt || null,
+        created_by: Number(row.ownerUserId || row.id || 0) || null,
         created_at: row.createdAt || new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'point_accounts',
-      ['user_id', 'balance', 'updated_at'],
-      ensureArray(state.pointAccounts).map((row) => ({
-        user_id: Number(row.userId),
-        balance: Number(row.balance || 0),
-        updated_at: row.updatedAt || new Date().toISOString(),
-      }))
-    );
-
-    await truncateAndInsert(
-      client,
-      'point_transactions',
-      ['id', 'user_id', 'direction', 'amount', 'source_type', 'source_id', 'idempotency_key', 'balance_after', 'created_at'],
-      ensureArray(state.pointTransactions).map((row) => ({
+      'b_agents',
+      ['id', 'tenant_id', 'employee_id', 'display_name', 'avatar_url', 'title', 'bio', 'status', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.agents).map((row) => ({
         id: Number(row.id),
-        user_id: Number(row.userId),
-        direction: row.type === 'consume' ? 'out' : 'in',
-        amount: Math.abs(Number(row.amount || 0)),
-        source_type: row.source || '',
-        source_id: row.sourceId || '',
-        idempotency_key: row.idempotencyKey || `tx-${row.id}`,
-        balance_after: Number(row.balance || 0),
+        tenant_id: Number(row.tenantId || 1),
+        employee_id: row.employeeId ? Number(row.employeeId) : null,
+        display_name: row.name || `Agent-${row.id}`,
+        avatar_url: row.avatarUrl || null,
+        title: row.title || null,
+        bio: row.bio || null,
+        status: row.status || 'active',
+        created_by: Number(row.createdBy || row.id || 0) || null,
         created_at: row.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'mall_items',
-      ['id', 'name', 'points_cost', 'stock', 'is_active', 'sort_order', 'created_at', 'updated_at'],
+      'p_products',
+      ['id', 'tenant_id', 'name', 'description', 'points_cost', 'stock', 'shelf_status', 'sort_order', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
       ensureArray(state.mallItems).map((row) => ({
         id: Number(row.id),
+        tenant_id: 1,
         name: row.name || '',
+        description: '',
         points_cost: Number(row.pointsCost || 0),
         stock: Number(row.stock || 0),
-        is_active: Boolean(row.isActive),
+        shelf_status: row.isActive ? 'on' : 'off',
         sort_order: 0,
+        created_by: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'redemption_orders',
-      ['id', 'user_id', 'item_id', 'item_name', 'points_cost', 'writeoff_token', 'status', 'expires_at', 'written_off_at', 'created_at'],
-      ensureArray(state.redemptions).map((row) => ({
+      'p_activities',
+      ['id', 'tenant_id', 'title', 'category', 'reward_points', 'start_at', 'end_at', 'status', 'sort_order', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.activities).map((row) => ({
         id: Number(row.id),
-        user_id: Number(row.userId),
-        item_id: Number(row.itemId),
-        item_name: ensureArray(state.mallItems).find((it) => Number(it.id) === Number(row.itemId))?.name || '',
-        points_cost: Number(row.pointsCost || 0),
-        writeoff_token: row.writeoffToken || `EX-${row.id}`,
-        status: row.status || 'pending',
-        expires_at: row.expiresAt || null,
-        written_off_at: row.writtenOffAt || null,
-        created_at: row.createdAt || new Date().toISOString(),
+        tenant_id: 1,
+        title: row.title || '',
+        category: row.category || 'task',
+        reward_points: Number(row.rewardPoints || 0),
+        start_at: null,
+        end_at: null,
+        status: 'published',
+        sort_order: Number(row.sortOrder || 0),
+        created_by: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'app_redemptions',
-      ['id', 'order_id', 'user_id', 'item_id', 'points_cost', 'status', 'writeoff_token', 'expires_at', 'created_at', 'written_off_at'],
-      ensureArray(state.redemptions).map((row) => ({
+      'p_learning_materials',
+      ['id', 'tenant_id', 'title', 'material_type', 'category', 'difficulty', 'status', 'content_url', 'sort_order', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.learningCourses).map((row, idx) => ({
         id: Number(row.id),
-        order_id: row.orderId ? Number(row.orderId) : null,
-        user_id: Number(row.userId),
-        item_id: Number(row.itemId),
-        points_cost: Number(row.pointsCost || 0),
-        status: row.status || 'pending',
-        writeoff_token: row.writeoffToken || `EX-${row.id}`,
-        expires_at: row.expiresAt || null,
-        created_at: row.createdAt || new Date().toISOString(),
-        written_off_at: row.writtenOffAt || null,
+        tenant_id: 1,
+        title: row.title || '',
+        material_type: row.type || 'article',
+        category: row.category || null,
+        difficulty: null,
+        status: 'published',
+        content_url: row.image || row.content || null,
+        sort_order: idx,
+        created_by: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'app_orders',
-      [
-        'id',
-        'tenant_id',
-        'customer_id',
-        'product_id',
-        'product_name',
-        'quantity',
-        'points_amount',
-        'status',
-        'payment_status',
-        'fulfillment_status',
-        'refund_status',
-        'order_no',
-        'created_at',
-        'updated_at',
-      ],
-      ensureArray(state.orders).map((row) => ({
+      'c_policies',
+      ['id', 'tenant_id', 'customer_id', 'family_member_id', 'company', 'policy_name', 'policy_no', 'policy_type', 'amount', 'annual_premium', 'period_start', 'period_end', 'status', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.policies).map((row) => ({
         id: Number(row.id),
-        tenant_id: Number(row.tenantId || 1),
-        customer_id: Number(row.customerId),
-        product_id: Number(row.productId),
-        product_name: row.productName || '',
-        quantity: Number(row.quantity || 1),
-        points_amount: Number(row.pointsAmount || 0),
-        status: row.status || 'created',
-        payment_status: row.paymentStatus || 'pending',
-        fulfillment_status: row.fulfillmentStatus || 'pending',
-        refund_status: row.refundStatus || 'none',
-        order_no: row.orderNo || '',
-        created_at: row.createdAt || new Date().toISOString(),
-        updated_at: row.updatedAt || new Date().toISOString(),
-      }))
-    );
-
-    await truncateAndInsert(
-      client,
-      'app_order_payments',
-      ['id', 'tenant_id', 'order_id', 'payment_method', 'payment_status', 'amount', 'created_at'],
-      ensureArray(state.orderPayments).map((row) => ({
-        id: Number(row.id),
-        tenant_id: Number(row.tenantId || 1),
-        order_id: Number(row.orderId),
-        payment_method: row.paymentMethod || 'points',
-        payment_status: row.paymentStatus || 'paid',
+        tenant_id: 1,
+        customer_id: Number(row.createdBy || 0) || 1,
+        family_member_id: null,
+        company: row.company || '',
+        policy_name: row.name || '',
+        policy_no: row.policyNo || null,
+        policy_type: row.type || null,
         amount: Number(row.amount || 0),
+        annual_premium: Number(row.annualPremium || 0),
+        period_start: row.periodStart || null,
+        period_end: row.periodEnd === '终身' ? null : row.periodEnd || null,
+        status: row.status === '保障中' ? 'active' : row.status || 'active',
+        created_by: Number(row.createdBy || 0) || null,
         created_at: row.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
       }))
     );
 
     await truncateAndInsert(
       client,
-      'app_order_fulfillments',
-      ['id', 'tenant_id', 'order_id', 'mode', 'operator_agent_id', 'created_at'],
-      ensureArray(state.orderFulfillments).map((row) => ({
-        id: Number(row.id),
-        tenant_id: Number(row.tenantId || 1),
-        order_id: Number(row.orderId),
-        mode: row.mode || 'writeoff',
-        operator_agent_id: Number(row.operatorAgentId || 0),
-        created_at: row.createdAt || new Date().toISOString(),
-      }))
+      'c_point_transactions',
+      ['id', 'tenant_id', 'customer_id', 'direction', 'amount', 'source_type', 'source_id', 'idempotency_key', 'balance_after', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.pointTransactions)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: 1,
+          customer_id: toFiniteNumber(row.userId, null),
+          direction: row.type === 'consume' ? 'out' : 'in',
+          amount: Math.abs(toFiniteNumber(row.amount, 0)),
+          source_type: row.source || '',
+          source_id: row.sourceId || '',
+          idempotency_key: row.idempotencyKey || `tx-${idx + 1}`,
+          balance_after: toFiniteNumber(row.balance, 0),
+          created_by: toFiniteNumber(row.userId, null),
+          created_at: row.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_deleted: false,
+        }))
+        .filter((row) => row.customer_id !== null)
+        .map((row, idx) => ({
+          ...row,
+          id: toFiniteNumber(row.id, idx + 1),
+        }))
     );
 
     await truncateAndInsert(
       client,
-      'app_order_refunds',
-      ['id', 'tenant_id', 'order_id', 'refund_type', 'status', 'reason', 'created_at'],
-      ensureArray(state.orderRefunds).map((row) => ({
-        id: Number(row.id),
-        tenant_id: Number(row.tenantId || 1),
-        order_id: Number(row.orderId),
-        refund_type: row.refundType || 'manual',
-        status: row.status || 'success',
-        reason: row.reason || '',
-        created_at: row.createdAt || new Date().toISOString(),
-      }))
-    );
-
-    await truncateAndInsert(
-      client,
-      'app_b_write_off_records',
-      ['id', 'tenant_id', 'redeem_record_id', 'operator_agent_id', 'writeoff_token', 'status', 'created_at'],
-      ensureArray(state.bWriteOffRecords).map((row) => ({
-        id: Number(row.id),
-        tenant_id: Number(row.tenantId || 1),
-        redeem_record_id: Number(row.redeemRecordId),
-        operator_agent_id: Number(row.operatorAgentId),
-        writeoff_token: row.writeoffToken || '',
-        status: row.status || 'success',
-        created_at: row.createdAt || new Date().toISOString(),
-      }))
-    );
-
-    await truncateAndInsert(
-      client,
-      'app_sessions',
-      ['token', 'user_id', 'expires_at', 'created_at'],
-      ensureArray(state.sessions).map((row) => ({
-        token: row.token,
-        user_id: Number(row.userId),
-        expires_at: row.expiresAt || new Date().toISOString(),
-        created_at: row.createdAt || new Date().toISOString(),
-      }))
-    );
-
-    await truncateAndInsert(
-      client,
-      'app_sms_codes',
+      'p_sms_codes',
       ['id', 'mobile', 'code', 'expires_at', 'used', 'created_at'],
-      ensureArray(state.smsCodes).map((row) => ({
-        id: Number(row.id),
+      ensureArray(state.smsCodes).map((row, idx) => ({
+        id: toFiniteNumber(row.id, idx + 1),
         mobile: row.mobile,
         code: row.code,
         expires_at: row.expiresAt || new Date().toISOString(),
@@ -1225,153 +1149,233 @@ async function writeStateToPostgresTables() {
 
     await truncateAndInsert(
       client,
-      'learning_courses',
-      [
-        'id',
-        'title',
-        'course_desc',
-        'type',
-        'type_label',
-        'progress',
-        'time_left',
-        'image',
-        'action',
-        'color',
-        'btn_color',
-        'points',
-        'category',
-        'content',
-        'created_at',
-        'updated_at',
-      ],
-      ensureArray(state.learningCourses).map((row) => ({
-        id: Number(row.id),
-        title: row.title || '',
-        course_desc: row.desc || '',
-        type: row.type || 'article',
-        type_label: row.typeLabel || '',
-        progress: Number(row.progress || 0),
-        time_left: row.timeLeft || '',
-        image: row.image || '',
-        action: row.action || '',
-        color: row.color || '',
-        btn_color: row.btnColor || '',
-        points: Number(row.points || 0),
-        category: row.category || '',
-        content: row.content || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }))
+      'p_sessions',
+      ['token', 'customer_id', 'expires_at', 'created_at'],
+      ensureArray(state.sessions)
+        .map((row) => ({
+          token: row.token,
+          customer_id: toFiniteNumber(row.userId, null),
+          expires_at: row.expiresAt || new Date().toISOString(),
+          created_at: row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.customer_id !== null)
     );
 
     await truncateAndInsert(
       client,
-      'learning_course_completions',
-      ['id', 'user_id', 'course_id', 'points_awarded', 'created_at'],
-      ensureArray(state.courseCompletions).map((row) => ({
-        id: Number(row.id),
-        user_id: Number(row.userId),
-        course_id: Number(row.courseId),
-        points_awarded: Number(row.pointsAwarded || 0),
-        created_at: row.createdAt || new Date().toISOString(),
-      }))
+      'p_orders',
+      ['id', 'tenant_id', 'customer_id', 'product_id', 'product_name', 'quantity', 'points_amount', 'status', 'payment_status', 'fulfillment_status', 'refund_status', 'order_no', 'created_at', 'updated_at'],
+      ensureArray(state.orders)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: toFiniteNumber(row.tenantId, 1),
+          customer_id: toFiniteNumber(row.customerId, null),
+          product_id: toFiniteNumber(row.productId, null),
+          product_name: row.productName || '',
+          quantity: toFiniteNumber(row.quantity, 1),
+          points_amount: toFiniteNumber(row.pointsAmount, 0),
+          status: row.status || 'created',
+          payment_status: row.paymentStatus || 'pending',
+          fulfillment_status: row.fulfillmentStatus || 'pending',
+          refund_status: row.refundStatus || 'none',
+          order_no: row.orderNo || '',
+          created_at: row.createdAt || new Date().toISOString(),
+          updated_at: row.updatedAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.customer_id !== null && row.product_id !== null)
     );
 
     await truncateAndInsert(
       client,
-      'insurance_policies',
-      [
-        'id',
-        'user_id',
-        'company',
-        'name',
-        'type',
-        'icon',
-        'amount',
-        'next_payment',
-        'status',
-        'applicant',
-        'insured',
-        'period_start',
-        'period_end',
-        'annual_premium',
-        'payment_period',
-        'coverage_period',
-        'policy_no',
-        'created_at',
-        'updated_at',
-      ],
-      ensureArray(state.policies).map((row) => ({
-        id: Number(row.id),
-        user_id: Number(row.createdBy || 0) || null,
-        company: row.company || '',
-        name: row.name || '',
-        type: row.type || '',
-        icon: null,
-        amount: Number(row.amount || 0),
-        next_payment: row.nextPayment || null,
-        status: row.status || '',
-        applicant: row.applicant || '',
-        insured: row.insured || '',
-        period_start: row.periodStart || null,
-        period_end: row.periodEnd || null,
-        annual_premium: Number(row.annualPremium || 0),
-        payment_period: row.paymentPeriod || '',
-        coverage_period: row.coveragePeriod || '',
-        policy_no: row.policyNo || '',
-        created_at: row.createdAt || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }))
+      'c_redeem_records',
+      ['id', 'tenant_id', 'customer_id', 'product_id', 'points_cost', 'writeoff_token', 'status', 'expires_at', 'written_off_at', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.redemptions)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: 1,
+          customer_id: toFiniteNumber(row.userId, null),
+          product_id: toFiniteNumber(row.itemId, null),
+          points_cost: toFiniteNumber(row.pointsCost, 0),
+          writeoff_token: row.writeoffToken || `EX-${idx + 1}`,
+          status: row.status || 'pending',
+          expires_at: row.expiresAt || null,
+          written_off_at: row.writtenOffAt || null,
+          created_by: toFiniteNumber(row.userId, null),
+          created_at: row.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_deleted: false,
+        }))
+        .filter((row) => row.customer_id !== null && row.product_id !== null)
     );
 
     await truncateAndInsert(
       client,
-      'policy_responsibilities',
-      ['id', 'policy_id', 'name', 'description', 'limit_amount', 'sort_order'],
+      'c_sign_ins',
+      ['id', 'tenant_id', 'customer_id', 'sign_date', 'created_at'],
+      ensureArray(state.signIns)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: 1,
+          customer_id: toFiniteNumber(row.userId, null),
+          sign_date: row.signDate || dateOnly(),
+          created_at: row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.customer_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'c_activity_completions',
+      ['id', 'tenant_id', 'customer_id', 'activity_id', 'completed_at'],
+      ensureArray(state.activityCompletions)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: 1,
+          customer_id: toFiniteNumber(row.userId, null),
+          activity_id: toFiniteNumber(row.activityId, null),
+          completed_at: row.completedAt || row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.customer_id !== null && row.activity_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'c_learning_records',
+      ['id', 'tenant_id', 'customer_id', 'material_id', 'title', 'material_type', 'progress', 'points_awarded', 'completed_at', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.courseCompletions)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: 1,
+          customer_id: toFiniteNumber(row.userId, null),
+          material_id: toFiniteNumber(row.courseId, null),
+          title: ensureArray(state.learningCourses).find((c) => Number(c.id) === Number(row.courseId))?.title || '学习记录',
+          material_type: ensureArray(state.learningCourses).find((c) => Number(c.id) === Number(row.courseId))?.type || 'article',
+          progress: 100,
+          points_awarded: toFiniteNumber(row.pointsAwarded, 0),
+          completed_at: row.createdAt || new Date().toISOString(),
+          created_by: toFiniteNumber(row.userId, null),
+          created_at: row.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_deleted: false,
+        }))
+        .filter((row) => row.customer_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'c_policy_responsibilities',
+      ['id', 'tenant_id', 'policy_id', 'name', 'description', 'limit_amount', 'sort_order'],
       responsibilitiesRows
     );
 
     await truncateAndInsert(
       client,
-      'policy_payment_history',
-      ['id', 'policy_id', 'payment_date', 'amount', 'note', 'status', 'sort_order'],
+      'c_policy_payment_history',
+      ['id', 'tenant_id', 'policy_id', 'payment_date', 'amount', 'note', 'status', 'sort_order'],
       paymentHistoryRows
     );
 
     await truncateAndInsert(
       client,
-      'app_activity_completions',
-      ['id', 'user_id', 'activity_id', 'completed_at'],
-      ensureArray(state.activityCompletions).map((row) => ({
-        id: Number(row.id),
-        user_id: Number(row.userId),
-        activity_id: Number(row.activityId),
-        completed_at: row.completedAt || row.createdAt || new Date().toISOString(),
-      }))
+      'p_order_payments',
+      ['id', 'tenant_id', 'order_id', 'payment_method', 'payment_status', 'amount', 'created_at'],
+      ensureArray(state.orderPayments)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: toFiniteNumber(row.tenantId, 1),
+          order_id: toFiniteNumber(row.orderId, null),
+          payment_method: row.paymentMethod || 'points',
+          payment_status: row.paymentStatus || 'paid',
+          amount: toFiniteNumber(row.amount, 0),
+          created_at: row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.order_id !== null)
     );
 
     await truncateAndInsert(
       client,
-      'app_sign_ins',
-      ['id', 'user_id', 'sign_date', 'created_at'],
-      ensureArray(state.signIns).map((row) => ({
-        id: Number(row.id),
-        user_id: Number(row.userId),
-        sign_date: row.signDate || dateOnly(),
+      'p_order_fulfillments',
+      ['id', 'tenant_id', 'order_id', 'mode', 'operator_agent_id', 'created_at'],
+      ensureArray(state.orderFulfillments)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: toFiniteNumber(row.tenantId, 1),
+          order_id: toFiniteNumber(row.orderId, null),
+          mode: row.mode || 'writeoff',
+          operator_agent_id: toFiniteNumber(row.operatorAgentId, 0),
+          created_at: row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.order_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'p_order_refunds',
+      ['id', 'tenant_id', 'order_id', 'refund_type', 'status', 'reason', 'created_at'],
+      ensureArray(state.orderRefunds)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: toFiniteNumber(row.tenantId, 1),
+          order_id: toFiniteNumber(row.orderId, null),
+          refund_type: row.refundType || 'manual',
+          status: row.status || 'success',
+          reason: row.reason || '',
+          created_at: row.createdAt || new Date().toISOString(),
+        }))
+        .filter((row) => row.order_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'b_write_off_records',
+      ['id', 'tenant_id', 'redeem_record_id', 'operator_agent_id', 'writeoff_token', 'status', 'reason', 'created_by', 'created_at', 'updated_at', 'is_deleted'],
+      ensureArray(state.bWriteOffRecords)
+        .map((row, idx) => ({
+          id: toFiniteNumber(row.id, idx + 1),
+          tenant_id: toFiniteNumber(row.tenantId, 1),
+          redeem_record_id: toFiniteNumber(row.redeemRecordId, null),
+          operator_agent_id: toFiniteNumber(row.operatorAgentId, 0),
+          writeoff_token: row.writeoffToken || '',
+          status: row.status || 'success',
+          reason: row.reason || null,
+          created_by: toFiniteNumber(row.operatorAgentId, null),
+          created_at: row.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_deleted: false,
+        }))
+        .filter((row) => row.redeem_record_id !== null)
+    );
+
+    await truncateAndInsert(
+      client,
+      'p_idempotency_records',
+      ['id', 'tenant_id', 'biz_type', 'biz_key', 'response', 'created_at'],
+      ensureArray(state.idempotencyRecords).map((row, idx) => ({
+        id: toFiniteNumber(row.id, idx + 1),
+        tenant_id: toFiniteNumber(row.tenantId, 1),
+        biz_type: row.bizType,
+        biz_key: row.bizKey,
+        response: row.response || null,
         created_at: row.createdAt || new Date().toISOString(),
       }))
     );
 
     await truncateAndInsert(
       client,
-      'app_idempotency_records',
-      ['id', 'tenant_id', 'biz_type', 'biz_key', 'response', 'created_at'],
-      ensureArray(state.idempotencyRecords).map((row) => ({
+      'p_track_events',
+      ['id', 'tenant_id', 'actor_type', 'actor_id', 'org_id', 'team_id', 'event_name', 'properties', 'path', 'source', 'user_agent', 'created_at'],
+      ensureArray(state.trackEvents).map((row) => ({
         id: Number(row.id),
         tenant_id: Number(row.tenantId || 1),
-        biz_type: row.bizType,
-        biz_key: row.bizKey,
-        response: row.response || null,
+        actor_type: String(row.actorType || 'anonymous'),
+        actor_id: Number(row.actorId || 0),
+        org_id: Number(row.orgId || 1),
+        team_id: Number(row.teamId || 1),
+        event_name: String(row.event || ''),
+        properties: row.properties || {},
+        path: row.path || null,
+        source: row.source || null,
+        user_agent: row.userAgent || null,
         created_at: row.createdAt || new Date().toISOString(),
       }))
     );

@@ -12,6 +12,7 @@ import { registerInsuranceRoutes } from './routes/insurance.routes.mjs';
 import { registerOrdersRoutes } from './routes/orders.routes.mjs';
 import { registerBAdminRoutes } from './routes/b-admin.routes.mjs';
 import { registerPAdminRoutes } from './routes/p-admin.routes.mjs';
+import { registerTrackRoutes } from './routes/track.routes.mjs';
 
 export function createSkeletonApp() {
   const app = express();
@@ -30,6 +31,7 @@ export function createSkeletonApp() {
   registerInsuranceRoutes(app);
   registerBAdminRoutes(app);
   registerPAdminRoutes(app);
+  registerTrackRoutes(app);
 
   return app;
 }
