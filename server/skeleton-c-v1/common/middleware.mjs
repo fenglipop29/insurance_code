@@ -21,8 +21,11 @@ export function corsMiddleware(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const requestAllowHeaders = String(req.headers['access-control-request-headers'] || '').trim();
+  const allowHeaders = requestAllowHeaders || 'Content-Type, Authorization, x-actor-type, x-actor-id, x-tenant-id, x-client-source, x-client-path';
+
+  res.setHeader('Vary', 'Origin, Access-Control-Request-Headers');
+  res.setHeader('Access-Control-Allow-Headers', allowHeaders);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
@@ -53,4 +56,41 @@ export function authOptional(req, res, next) {
 
   req.user = user;
   next();
+}
+
+function toIssues(error) {
+  return (error?.issues || []).map((item) => ({
+    path: Array.isArray(item.path) ? item.path.join('.') : '',
+    message: item.message,
+  }));
+}
+
+export function validateBody(schema) {
+  return (req, res, next) => {
+    const parsed = schema.safeParse(req.body || {});
+    if (!parsed.success) {
+      return res.status(400).json({
+        code: 'INVALID_PARAMS',
+        message: '请求参数不合法',
+        issues: toIssues(parsed.error),
+      });
+    }
+    req.body = parsed.data;
+    next();
+  };
+}
+
+export function validateParams(schema) {
+  return (req, res, next) => {
+    const parsed = schema.safeParse(req.params || {});
+    if (!parsed.success) {
+      return res.status(400).json({
+        code: 'INVALID_PARAMS',
+        message: '请求参数不合法',
+        issues: toIssues(parsed.error),
+      });
+    }
+    req.params = parsed.data;
+    next();
+  };
 }

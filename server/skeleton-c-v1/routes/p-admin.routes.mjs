@@ -130,4 +130,121 @@ export function registerPAdminRoutes(app) {
     const report = runReconciliation(req.body?.day || new Date().toISOString().slice(0, 10));
     res.json({ ok: true, report });
   });
+
+  app.get('/api/p/employees', tenantContext, permissionRequired('tenant:read'), (req, res) => {
+    const state = getState();
+    const list = (state.agents || []).filter(
+      (row) => Number(row.tenantId) === Number(req.tenantContext.tenantId) || req.actor.actorId === 9001
+    );
+    res.json({ list });
+  });
+
+  app.post('/api/p/employees', tenantContext, permissionRequired('tenant:write'), (req, res) => {
+    const state = getState();
+    if (!Array.isArray(state.agents)) state.agents = [];
+    const name = String(req.body?.name || '').trim();
+    const email = String(req.body?.email || '').trim();
+    const role = String(req.body?.role || 'salesperson');
+    if (!name) return res.status(400).json({ code: 'EMPLOYEE_NAME_REQUIRED', message: '员工姓名不能为空' });
+    if (!email) return res.status(400).json({ code: 'EMPLOYEE_EMAIL_REQUIRED', message: '员工邮箱不能为空' });
+
+    const row = {
+      id: nextId(state.agents),
+      tenantId: req.tenantContext.tenantId,
+      orgId: Number(req.body?.orgId || 1),
+      teamId: Number(req.body?.teamId || 1),
+      name,
+      email,
+      role,
+      status: 'invited',
+      createdAt: new Date().toISOString(),
+      lastActiveAt: null,
+    };
+    state.agents.push(row);
+    persistState();
+    return res.json({ ok: true, employee: row });
+  });
+
+  app.get('/api/p/mall/products', tenantContext, permissionRequired('tenant:read'), (_req, res) => {
+    const state = getState();
+    const products = Array.isArray(state.pProducts) ? state.pProducts : [];
+    const source = products.length ? products : state.mallItems || [];
+    const list = source.map((item, idx) => ({
+      id: Number(item.id || idx + 1),
+      title: String(item.title || item.name || '').trim(),
+      points: Number(item.points ?? item.pointsCost ?? 0),
+      stock: Number(item.stock ?? 0),
+      sortOrder: Number(item.sortOrder ?? idx + 1),
+      status: String(item.status || (item.isActive ? 'active' : 'inactive') || 'inactive'),
+      updatedAt: item.updatedAt || new Date().toISOString(),
+    }));
+    res.json({ list });
+  });
+
+  app.post('/api/p/mall/products', tenantContext, permissionRequired('tenant:write'), (req, res) => {
+    const state = getState();
+    if (!Array.isArray(state.pProducts)) state.pProducts = [];
+    if (!Array.isArray(state.mallItems)) state.mallItems = [];
+    const title = String(req.body?.title || '').trim();
+    const points = Number(req.body?.points || 0);
+    const stock = Number(req.body?.stock || 0);
+    if (!title) return res.status(400).json({ code: 'PRODUCT_TITLE_REQUIRED', message: '商品标题不能为空' });
+
+    const row = {
+      id: nextId(state.pProducts),
+      tenantId: req.tenantContext.tenantId,
+      title,
+      points,
+      stock,
+      sortOrder: Number(req.body?.sortOrder || state.pProducts.length + 1),
+      status: 'active',
+      updatedAt: new Date().toISOString(),
+    };
+    state.pProducts.push(row);
+    state.mallItems.push({
+      id: nextId(state.mallItems),
+      name: row.title,
+      pointsCost: row.points,
+      stock: row.stock,
+      isActive: true,
+    });
+    persistState();
+    res.json({ ok: true, product: row });
+  });
+
+  app.get('/api/p/mall/activities', tenantContext, permissionRequired('tenant:read'), (_req, res) => {
+    const state = getState();
+    const saved = Array.isArray(state.pActivities) ? state.pActivities : [];
+    const source = saved.length ? saved : state.activities || [];
+    const list = source.map((item, idx) => ({
+      id: Number(item.id || idx + 1),
+      title: String(item.title || item.name || '').trim(),
+      type: String(item.type || item.category || 'task'),
+      rewardPoints: Number(item.rewardPoints ?? item.points ?? 0),
+      sortOrder: Number(item.sortOrder ?? idx + 1),
+      status: String(item.status || 'active'),
+      updatedAt: item.updatedAt || new Date().toISOString(),
+    }));
+    res.json({ list });
+  });
+
+  app.post('/api/p/mall/activities', tenantContext, permissionRequired('tenant:write'), (req, res) => {
+    const state = getState();
+    if (!Array.isArray(state.pActivities)) state.pActivities = [];
+    const title = String(req.body?.title || '').trim();
+    if (!title) return res.status(400).json({ code: 'ACTIVITY_TITLE_REQUIRED', message: '活动标题不能为空' });
+    const row = {
+      id: nextId(state.pActivities),
+      tenantId: req.tenantContext.tenantId,
+      title,
+      type: String(req.body?.type || 'task'),
+      rewardPoints: Number(req.body?.rewardPoints || 0),
+      sortOrder: Number(req.body?.sortOrder || state.pActivities.length + 1),
+      status: 'active',
+      updatedAt: new Date().toISOString(),
+    };
+    state.pActivities.push(row);
+    persistState();
+    res.json({ ok: true, activity: row });
+  });
 }
