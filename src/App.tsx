@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Share2 } from 'lucide-react';
 import Home from './pages/Home';
 import Learning from './pages/Learning';
 import InsuranceManagement from './pages/InsuranceManagement';
@@ -11,6 +12,7 @@ import PointsMall from './components/mall/PointsMall';
 import AdvisorDetail from './components/advisor/AdvisorDetail';
 import { AnimatePresence } from 'motion/react';
 import { api, clearToken, getToken, setToken, User } from './lib/api';
+import { trackCEvent } from './lib/track';
 
 const USER_CACHE_KEY = 'insurance_user_cache';
 const BALANCE_CACHE_KEY = 'insurance_balance_cache';
@@ -53,9 +55,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(() => readCachedUser());
   const [pointsBalance, setPointsBalance] = useState(() => readCachedBalance());
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  const track = (event: string, properties: Record<string, unknown> = {}) => {
-    api.trackEvent({ event, properties }).catch(() => undefined);
-  };
+  const track = trackCEvent;
   const applyBalance = (balance: number) => {
     setPointsBalance(balance);
     writeCachedBalance(balance);
@@ -179,8 +179,72 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    clearToken();
+    setUser(null);
+    applyBalance(0);
+    writeCachedUser(null);
+    setCurrentTab('home');
+    setShowPointsMall(false);
+    setShowAuthModal(false);
+    alert('已退出登录');
+  };
+
+  const handleShare = async () => {
+    const pageUrl = window.location.href;
+    const shareTitleByTab: Record<string, string> = {
+      home: '保险助手-首页',
+      learning: '保险助手-知识学习',
+      activities: '保险助手-活动中心',
+      insurance: '保险助手-保障管理',
+      profile: '保险助手-我的',
+      advisor: '保险助手-专属顾问',
+    };
+    const title = shareTitleByTab[currentTab] || '保险助手';
+    track('c_share_click', { tab: currentTab, url: pageUrl, hasWebShare: Boolean((navigator as any).share) });
+    try {
+      if ((navigator as any).share) {
+        await (navigator as any).share({
+          title,
+          text: '和我一起使用保险助手',
+          url: pageUrl,
+        });
+        track('c_share_success', { tab: currentTab, method: 'web_share' });
+        return;
+      }
+      await navigator.clipboard.writeText(pageUrl);
+      track('c_share_success', { tab: currentTab, method: 'clipboard' });
+      alert('链接已复制');
+    } catch (err: any) {
+      const isAbort = String(err?.name || '') === 'AbortError';
+      if (isAbort) {
+        track('c_share_cancel', { tab: currentTab });
+        return;
+      }
+      track('c_share_failed', { tab: currentTab, message: String(err?.message || 'UNKNOWN') });
+      alert('分享失败，请稍后重试');
+    }
+  };
+
   return (
     <div className="bg-slate-50 min-h-screen flex flex-col font-sans text-slate-900">
+      <button
+        type="button"
+        onClick={handleShare}
+        className="fixed right-4 top-4 z-[10070] inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow"
+        aria-label="分享当前页面"
+      >
+        <Share2 size={18} />
+      </button>
+      {user?.is_verified_basic && (
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="fixed right-16 top-4 z-[10070] rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow border border-slate-200"
+        >
+          退出登录
+        </button>
+      )}
       {currentTab === 'home' && (
         <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} onSignIn={handleSignIn} />
       )}
