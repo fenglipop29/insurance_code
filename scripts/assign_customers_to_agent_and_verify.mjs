@@ -33,6 +33,7 @@ function actorHeaders(session = {}, extra = {}) {
     'x-team-id': String(session.teamId || 0),
     'x-actor-type': String(session.actorType || 'employee'),
     'x-actor-id': String(session.actorId || 0),
+    ...(session.token ? { Authorization: `Bearer ${String(session.token)}` } : {}),
     ...(session.csrfToken ? { 'x-csrf-token': String(session.csrfToken) } : {}),
     ...extra,
   };
