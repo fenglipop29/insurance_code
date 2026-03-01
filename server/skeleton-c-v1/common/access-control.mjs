@@ -7,12 +7,19 @@ function toInt(value, fallback = null) {
 
 export function tenantContext(req, _res, next) {
   const user = req.user || null;
-  const tenantId = toInt(req.headers['x-tenant-id'], toInt(user?.tenantId, 1));
-  const orgId = toInt(req.headers['x-org-id'], toInt(user?.orgId, 1));
-  const teamId = toInt(req.headers['x-team-id'], toInt(user?.teamId, 1));
-  const ownerUserId = toInt(req.headers['x-owner-user-id'], toInt(user?.ownerUserId, toInt(user?.id, 0)));
-  const actorType = String(req.headers['x-actor-type'] || (user ? 'customer' : 'employee')).toLowerCase();
-  const actorId = toInt(req.headers['x-actor-id'], toInt(user?.id, 9001));
+  const path = String(req.path || '');
+  const isAdminPath = path.startsWith('/api/p/') || path.startsWith('/api/b/');
+
+  if (isAdminPath && !user) {
+    return _res.status(401).json({ code: 'UNAUTHORIZED', message: '请先登录' });
+  }
+
+  const tenantId = toInt(user?.tenantId, toInt(req.headers['x-tenant-id'], null));
+  const orgId = toInt(user?.orgId, toInt(req.headers['x-org-id'], null));
+  const teamId = toInt(user?.teamId, toInt(req.headers['x-team-id'], null));
+  const ownerUserId = toInt(user?.ownerUserId, toInt(req.headers['x-owner-user-id'], null));
+  const actorType = String(user?.actorType || req.headers['x-actor-type'] || (user ? 'customer' : 'anonymous')).toLowerCase();
+  const actorId = toInt(user?.id, toInt(req.headers['x-actor-id'], null));
 
   req.tenantContext = { tenantId, orgId, teamId, ownerUserId };
   req.actor = { actorType, actorId, tenantId, orgId, teamId };

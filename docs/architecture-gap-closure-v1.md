@@ -11,8 +11,8 @@
 - RBAC校验中间件：`permissionRequired`
 - ABAC数据范围注入：`dataScope`（tenant/team/owner范围）
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/common/access-control.mjs`
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/common/state.mjs`（roles/permissions/rolePermissions/userRoles）
+  - `../server/skeleton-c-v1/common/access-control.mjs`
+  - `../server/skeleton-c-v1/common/state.mjs`（roles/permissions/rolePermissions/userRoles）
 
 上下文字段：
 - `tenant_id/org_id/team_id/owner_user_id`（运行态在user对象和tenantContext中）
@@ -25,8 +25,8 @@
 - 履约/核销：`orderFulfillments` + `redemptions` + `bWriteOffRecords`
 - 退款/取消：`orderRefunds`
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/services/commerce.service.mjs`
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/routes/orders.routes.mjs`
+  - `../server/skeleton-c-v1/services/commerce.service.mjs`
+  - `../server/skeleton-c-v1/routes/orders.routes.mjs`
 
 兼容策略：
 - 旧接口 `/api/mall/redeem` 已改为走订单创建+支付，但保持原响应结构兼容前端。
@@ -38,8 +38,8 @@
 - B端运营域：`/api/b/*`（客户列表、打标、订单核销）
 - P端平台域：`/api/p/*`（租户、权限矩阵、审批、退款、统计重建、对账）
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/routes/b-admin.routes.mjs`
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/routes/p-admin.routes.mjs`
+  - `../server/skeleton-c-v1/routes/b-admin.routes.mjs`
+  - `../server/skeleton-c-v1/routes/p-admin.routes.mjs`
 
 ## 4. 审批与审计架构
 
@@ -48,7 +48,7 @@
 - 审计日志：`auditLogs`（追加写入，不提供修改/删除接口）
 - 关键操作均写审计（下单、支付、核销、退款、审批）
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/common/state.mjs`（`appendAuditLog`）
+  - `../server/skeleton-c-v1/common/state.mjs`（`appendAuditLog`）
 
 ## 5. 事件与幂等架构
 
@@ -58,8 +58,8 @@
 - outbox：`outboxEvents`
 - 已覆盖关键流程：订单创建、订单支付（含积分扣减和库存扣减）、退款、核销
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/common/state.mjs`
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/services/commerce.service.mjs`
+  - `../server/skeleton-c-v1/common/state.mjs`
+  - `../server/skeleton-c-v1/services/commerce.service.mjs`
 
 ## 6. 统计数仓/聚合层
 
@@ -68,11 +68,11 @@
 - 日统计重建：`rebuildDailySnapshot`
 - 日对账：`runReconciliation`
 - 代码位置：
-  - `/Users/wenshuping/Documents/New project/insurance_code/server/skeleton-c-v1/services/analytics.service.mjs`
+  - `../server/skeleton-c-v1/services/analytics.service.mjs`
 
 已提供（DDL层）：
-- 数仓表示例DDL：`/Users/wenshuping/Documents/New project/insurance_code/server/data/schema_dw_analytics_v1.sql`
-- 业务域DDL：`/Users/wenshuping/Documents/New project/insurance_code/server/data/schema_phase_a_prd_v1.sql`
+- 数仓表示例DDL：`../server/data/schema_dw_analytics_v1.sql`
+- 业务域DDL：`../server/data/schema_phase_a_prd_v1.sql`
 
 ## 7. 仍建议下一步补充
 

@@ -2,8 +2,8 @@
 
 更新时间：2026-02-23  
 输入依据：
-- 需求文档：`/Users/wenshuping/Downloads/保云链需求文档 (1).docx`
-- 原型目录：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3`
+- 需求文档：保云链需求文档（外部输入，来源为本地下载目录）
+- 原型目录：UI 原型目录（外部输入，历史设计稿）
 
 ## 1. 架构目标与范围
 

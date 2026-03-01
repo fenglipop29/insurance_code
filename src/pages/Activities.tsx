@@ -3,6 +3,7 @@ import { HelpCircle, ShoppingBag, CheckCircle2, Share2, Shield, Users } from 'lu
 import { AnimatePresence } from 'motion/react';
 import ActivityDetail from '../components/activities/ActivityDetail';
 import { api, type Activity } from '../lib/api';
+import { trackCEvent } from '../lib/track';
 
 interface Props {
   requireAuth: (action: () => void) => void;
@@ -17,6 +18,17 @@ const categoryBadge: Record<string, { label: string; className: string }> = {
   task: { label: '资料完善', className: 'text-orange-500 bg-orange-50' },
   invite: { label: '有奖推荐', className: 'text-green-600 bg-green-50' },
 };
+
+function mediaToUrl(mediaItem: any): string {
+  if (!mediaItem) return '';
+  if (typeof mediaItem === 'string') return mediaItem;
+  return String(mediaItem.preview || mediaItem.url || mediaItem.path || mediaItem.name || '');
+}
+
+function resolveActivityImage(activity: Activity): string {
+  const media = Array.isArray(activity.media) ? activity.media : [];
+  return mediaToUrl(media[0]) || String(activity.image || activity.cover || `https://picsum.photos/seed/activity${activity.id}/800/450`);
+}
 
 function iconByCategory(category: string) {
   if (category === 'sign') return CheckCircle2;
@@ -35,12 +47,16 @@ export default function Activities({ requireAuth, onOpenMall, pointsBalance, onB
     try {
       const res = await api.activities();
       setActivities(res.activities || []);
+      trackCEvent('c_activities_load_success', {
+        total: Number((res.activities || []).length),
+      });
       if (typeof res.balance === 'number' && Number.isFinite(res.balance)) {
         onBalanceChange(res.balance);
       }
       setTasksCompleted(res.taskProgress?.completed || 0);
       setTasksTotal(res.taskProgress?.total || 0);
     } catch (e) {
+      trackCEvent('c_activities_load_failed', {});
       console.error(e);
     }
   };
@@ -63,14 +79,17 @@ export default function Activities({ requireAuth, onOpenMall, pointsBalance, onB
         if (activity.category === 'sign') {
           const res = await api.signIn();
           onBalanceChange(res.balance);
+          trackCEvent('c_activity_complete_success', { activityId: activity.id, category: activity.category, reward: Number(res.reward || 0) });
           alert(`签到成功，获得${res.reward}积分！`);
         } else {
           const res = await api.completeActivity(activity.id);
           onBalanceChange(res.balance);
+          trackCEvent('c_activity_complete_success', { activityId: activity.id, category: activity.category, reward: Number(res.reward || 0) });
           alert(`任务完成，获得${res.reward}积分！`);
         }
         await loadActivities();
       } catch (e: any) {
+        trackCEvent('c_activity_complete_failed', { activityId: activity.id, category: activity.category, code: String(e?.code || 'UNKNOWN') });
         alert(e?.message || '操作失败');
       }
     });
@@ -177,20 +196,19 @@ export default function Activities({ requireAuth, onOpenMall, pointsBalance, onB
           <div className="grid grid-cols-1 gap-4">
             {hotActivities.map((activity) => {
               const badge = categoryBadge[activity.category] || categoryBadge.competition;
+              const image = resolveActivityImage(activity);
               return (
                 <div
                   key={activity.id}
-                  onClick={() =>
-                    setSelectedActivity({
-                      title: activity.title,
-                      image: `https://picsum.photos/seed/activity${activity.id}/800/450`,
-                    })
-                  }
+                  onClick={() => {
+                    trackCEvent('c_activity_open_detail', { activityId: activity.id, category: activity.category });
+                    setSelectedActivity({ ...activity, image });
+                  }}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 flex h-32 cursor-pointer active:scale-[0.98] transition-transform"
                 >
                   <div className="w-32 bg-slate-800 relative flex items-center justify-center">
                     <img
-                      src={`https://picsum.photos/seed/activity${activity.id}/200/200`}
+                      src={image}
                       alt={activity.title}
                       className="absolute inset-0 w-full h-full object-cover opacity-50"
                       referrerPolicy="no-referrer"
@@ -221,7 +239,15 @@ export default function Activities({ requireAuth, onOpenMall, pointsBalance, onB
 
       <AnimatePresence>
         {selectedActivity && (
-          <ActivityDetail activity={selectedActivity} onClose={() => setSelectedActivity(null)} requireAuth={requireAuth} />
+          <ActivityDetail
+            activity={selectedActivity}
+            onClose={() => setSelectedActivity(null)}
+            requireAuth={requireAuth}
+            onCompleted={(nextBalance) => {
+              onBalanceChange(nextBalance);
+              loadActivities().catch(() => undefined);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -5,7 +5,7 @@
 
 ## 1. 契约冻结与单一事实源
 
-- 冻结文件：`/Users/wenshuping/Documents/insurance_increase/insurance_code/docs/openapi-c-v1.yaml`
+- 冻结文件：`./openapi-c-v1.yaml`
 - 规则：
   - 不删除、不重命名、不改变字段语义。
   - 仅允许“向后兼容新增”字段（默认可选）。

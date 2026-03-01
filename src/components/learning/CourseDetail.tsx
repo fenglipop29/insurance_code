@@ -3,6 +3,7 @@ import { ChevronLeft, Share2, Award } from 'lucide-react';
 import { motion } from 'motion/react';
 import { api } from '../../lib/api';
 import { Course } from './InsuranceClass';
+import { trackCEvent } from '../../lib/track';
 
 interface Props {
   course: Course;
@@ -17,13 +18,20 @@ export default function CourseDetail({ course, onBack }: Props) {
 
   useEffect(() => {
     let mounted = true;
+    trackCEvent('c_learning_view_course', {
+      courseId: course.id,
+      category: course.category,
+      type: course.type,
+    });
     api
       .learningCourseDetail(course.id)
       .then((resp) => {
         if (!mounted) return;
         setCourseData((prev) => ({ ...prev, ...resp.course }));
+        trackCEvent('c_learning_detail_load_success', { courseId: course.id });
       })
       .catch((err) => {
+        trackCEvent('c_learning_detail_load_failed', { courseId: course.id });
         console.error(err);
       });
     return () => {
@@ -38,15 +46,37 @@ export default function CourseDetail({ course, onBack }: Props) {
     }
   };
 
+  const resolveVideoUrl = () => {
+    const direct = String((courseData as any).videoUrl || '').trim();
+    if (direct) return direct;
+    const media = Array.isArray((courseData as any).media) ? (courseData as any).media : [];
+    const hit = media.find((m: any) => {
+      if (typeof m === 'string') return /\.(mp4|mov|m4v|webm)$/i.test(m);
+      const t = String(m?.type || '').toLowerCase();
+      const n = String(m?.name || m?.url || m?.preview || '').toLowerCase();
+      return t.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(n);
+    });
+    if (!hit) return '';
+    if (typeof hit === 'string') return hit;
+    return String(hit.preview || hit.url || hit.path || hit.name || '');
+  };
+  const videoUrl = resolveVideoUrl() || 'https://www.w3schools.com/html/mov_bbb.mp4';
+
   const handleComplete = async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
       const resp = await api.completeCourse(course.id);
       const msg = resp.duplicated ? resp.message || '课程积分已领取' : `恭喜完成学习，获得 ${resp.reward} 积分`;
+      trackCEvent('c_learning_complete_success', {
+        courseId: course.id,
+        duplicated: Boolean(resp.duplicated),
+        reward: Number(resp.reward || 0),
+      });
       alert(`${msg}\n当前积分：${resp.balance}`);
       onBack();
     } catch (e: any) {
+      trackCEvent('c_learning_complete_failed', { courseId: course.id, code: String(e?.code || 'UNKNOWN') });
       if (e?.code === 'UNAUTHORIZED') {
         alert('请先完成实名并登录后再领取积分');
       } else {
@@ -80,7 +110,7 @@ export default function CourseDetail({ course, onBack }: Props) {
           <div className="w-full bg-black relative">
             <video
               ref={videoRef}
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
+              src={videoUrl}
               controls
               className="w-full aspect-video object-contain"
               poster={courseData.image}

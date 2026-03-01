@@ -40,7 +40,7 @@ export default function MarketingPopup({ onClose, onAction }: Props) {
               </div>
               
               <h2 className="text-2xl font-bold text-slate-900 mb-2">每日签到好礼</h2>
-              <p className="text-slate-500 text-sm mb-6">今天签到可获得 <span className="text-red-500 font-bold">50</span> 积分<br/>连续签到奖励更丰富哦！</p>
+              <p className="text-slate-500 text-sm mb-6">今天签到可获得 <span className="text-red-500 font-bold">10</span> 积分<br/>连续签到奖励更丰富哦！</p>
               
               <button 
                 onClick={onAction}

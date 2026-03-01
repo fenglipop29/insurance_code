@@ -1,8 +1,8 @@
 # 任务导入说明（Jira / Linear）
 
 文件：
-- Jira: `/Users/wenshuping/Documents/insurance_increase/insurance_code/docs/jira-import-backend-v1.csv`
-- Linear: `/Users/wenshuping/Documents/insurance_increase/insurance_code/docs/linear-import-backend-v1.csv`
+- Jira: `./jira-import-backend-v1.csv`
+- Linear: `./linear-import-backend-v1.csv`
 
 说明：
 - 计划周期按 2026-02-23 至 2026-03-06（10个工作日）。

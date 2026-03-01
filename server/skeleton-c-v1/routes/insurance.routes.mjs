@@ -1,5 +1,6 @@
-import { authRequired } from '../common/middleware.mjs';
+import { authRequired, validateBody, validateParams } from '../common/middleware.mjs';
 import { getState, nextId, persistState } from '../common/state.mjs';
+import { createPolicyBodySchema, policyIdParamsSchema } from '../schemas/insurance.schemas.mjs';
 
 export function registerInsuranceRoutes(app) {
   app.get('/api/insurance/overview', (_req, res) => {
@@ -19,9 +20,9 @@ export function registerInsuranceRoutes(app) {
     return res.json({ policies });
   });
 
-  app.get('/api/insurance/policies/:id', (req, res) => {
+  app.get('/api/insurance/policies/:id', validateParams(policyIdParamsSchema), (req, res) => {
     const state = getState();
-    const id = Number(req.params.id);
+    const { id } = req.params;
     const policy = state.policies.find((p) => p.id === id);
     if (!policy) {
       return res.status(404).json({ code: 'POLICY_NOT_FOUND', message: '保单不存在' });
@@ -46,26 +47,10 @@ export function registerInsuranceRoutes(app) {
     });
   });
 
-  app.post('/api/insurance/policies', authRequired, (req, res) => {
+  app.post('/api/insurance/policies', authRequired, validateBody(createPolicyBodySchema), (req, res) => {
     const state = getState();
-
-    const company = String(req.body?.company || '').trim();
-    const name = String(req.body?.name || '').trim();
-    const applicant = String(req.body?.applicant || '').trim();
-    const insured = String(req.body?.insured || '').trim();
-    const date = String(req.body?.date || '').trim();
-    const paymentPeriod = String(req.body?.paymentPeriod || '').trim();
-    const coveragePeriod = String(req.body?.coveragePeriod || '').trim();
-    const amount = Number(req.body?.amount);
-    const firstPremium = Number(req.body?.firstPremium);
-    const type = String(req.body?.type || '').trim() || inferPolicyType(name);
-
-    if (!company || !name || !applicant || !insured || !date || !paymentPeriod || !coveragePeriod) {
-      return res.status(400).json({ code: 'INVALID_POLICY_INPUT', message: '请完整填写保单信息' });
-    }
-    if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(firstPremium) || firstPremium <= 0) {
-      return res.status(400).json({ code: 'INVALID_POLICY_AMOUNT', message: '保额或首期保费不正确' });
-    }
+    const { company, name, applicant, insured, date, paymentPeriod, coveragePeriod, amount, firstPremium } = req.body;
+    const type = req.body.type || inferPolicyType(name);
 
     const policy = {
       id: nextId(state.policies),

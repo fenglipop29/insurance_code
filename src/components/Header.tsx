@@ -1,12 +1,17 @@
 import React from 'react';
 import { UserCircle, Bell } from 'lucide-react';
 
-export default function Header() {
+type Props = {
+  customerName?: string | null;
+};
+
+export default function Header({ customerName }: Props) {
   const hour = new Date().getHours();
   let greeting = '你好';
   if (hour < 12) greeting = '早上好';
   else if (hour < 18) greeting = '下午好';
   else greeting = '晚上好';
+  const displayName = String(customerName || '').trim() || '您';
 
   return (
     <header className="px-4 pt-6 pb-2 flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
@@ -15,7 +20,7 @@ export default function Header() {
           <UserCircle size={32} />
         </div>
         <div>
-          <h1 className="text-xl font-bold">张叔叔，{greeting}！</h1>
+          <h1 className="text-xl font-bold">{displayName}，{greeting}！</h1>
           <p className="text-slate-500 text-sm">今天也要记得领鸡蛋哦</p>
         </div>
       </div>

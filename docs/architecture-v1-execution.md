@@ -2,7 +2,7 @@
 
 更新时间：2026-02-23
 适用范围：C端优先上线（实名、活动、积分、商城、兑换、我的），B/P端仅保留不阻塞C端的最小运营能力。
-约束基线：以 `/Users/wenshuping/Documents/insurance_increase/insurance_code/docs/openapi-c-v1.yaml` 为冻结契约，不改变既有字段语义。
+约束基线：以 `./openapi-c-v1.yaml` 为冻结契约，不改变既有字段语义。
 
 ## 1. v1 架构目标与非目标
 

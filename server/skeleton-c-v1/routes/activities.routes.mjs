@@ -1,11 +1,49 @@
 import { authOptional, authRequired } from '../common/middleware.mjs';
+import { tenantContext } from '../common/access-control.mjs';
 import { dateOnly, getBalance, getState, nextId, persistState } from '../common/state.mjs';
+import { canAccessTemplate } from '../common/template-visibility.mjs';
 import { recordPoints } from '../services/points.service.mjs';
 
+function mediaToUrl(mediaItem) {
+  if (!mediaItem) return '';
+  if (typeof mediaItem === 'string') return mediaItem;
+  return String(mediaItem.preview || mediaItem.url || mediaItem.path || mediaItem.name || '');
+}
+
+function normalizeActivity(activity = {}) {
+  const media = Array.isArray(activity.media) ? activity.media : [];
+  const cover = mediaToUrl(media[0]) || String(activity.image || activity.cover || '');
+  return {
+    ...activity,
+    image: cover,
+    cover,
+    media,
+    participants: Number(activity.participants || 0),
+    rewardPoints: Number(activity.rewardPoints || 0),
+    description: String(activity.content || activity.description || activity.desc || ''),
+  };
+}
+
 export function registerActivitiesRoutes(app) {
-  app.get('/api/activities', authOptional, (req, res) => {
+  app.get('/api/activities', authOptional, tenantContext, (req, res) => {
     const state = getState();
-    const list = [...state.activities].sort((a, b) => a.sortOrder - b.sortOrder);
+    const isEffective = (row) => {
+      const status = String(row?.status || '').toLowerCase();
+      if (!status) return true;
+      return ['active', 'online', 'published', 'ongoing', 'on', '进行中', '生效'].includes(status);
+    };
+    const source = [...(Array.isArray(state.pActivities) ? state.pActivities : []), ...(Array.isArray(state.activities) ? state.activities : [])];
+    const seen = new Set();
+    const uniqueSource = [...source].filter((row) => {
+      const key = `${Number(row?.id || 0)}:${String(row?.title || '')}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const list = uniqueSource
+      .filter((activity) => isEffective(activity) && canAccessTemplate(state, req.actor, activity))
+      .map((activity) => normalizeActivity(activity))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const today = dateOnly(new Date());
     const activities = list.map((activity) => {
@@ -40,7 +78,8 @@ export function registerActivitiesRoutes(app) {
   app.post('/api/activities/:id/complete', authRequired, (req, res) => {
     const state = getState();
     const id = Number(req.params.id);
-    const activity = state.activities.find((a) => a.id === id);
+    const source = [...(Array.isArray(state.pActivities) ? state.pActivities : []), ...(Array.isArray(state.activities) ? state.activities : [])];
+    const activity = source.find((a) => Number(a.id) === id);
 
     if (!activity) {
       return res.status(404).json({ code: 'ACTIVITY_NOT_FOUND', message: '活动不存在' });

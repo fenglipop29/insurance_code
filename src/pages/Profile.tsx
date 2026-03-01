@@ -8,6 +8,7 @@ import FamilyMembers from '../components/profile/FamilyMembers';
 import CourseDetail from '../components/learning/CourseDetail';
 import PointsDetailPage from '../components/mall/PointsDetailPage';
 import { User, api, LearningCourse, InsurancePolicy } from '../lib/api';
+import { trackCEvent } from '../lib/track';
 
 const POLICY_COUNT_CACHE_KEY = 'insurance_profile_policy_count';
 
@@ -103,6 +104,16 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
     return String(latestPendingExchange.createdAt).slice(0, 10);
   }, [latestPendingExchange]);
 
+  const openCourseWithTrack = (source: string, course: LearningCourse) => {
+    trackCEvent('c_learning_open_detail', {
+      source,
+      courseId: Number(course.id || 0),
+      category: String(course.category || ''),
+      type: String(course.type || ''),
+    });
+    setSelectedCourse(course);
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen pb-24">
       <header className="bg-white px-6 pt-10 pb-8 rounded-b-3xl shadow-sm">
@@ -168,7 +179,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                requireAuth(() => setShowPointsDetail(true));
+                requireAuth(() => {
+                  trackCEvent('c_profile_open_points_detail', {});
+                  setShowPointsDetail(true);
+                });
               }}
               className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-200 active:scale-95 transition-transform"
             >
@@ -181,7 +195,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
           <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
             <div className="flex justify-between items-center mb-4">
               <h3
-                onClick={() => setShowMyExchanges(true)}
+                onClick={() => {
+                  trackCEvent('c_profile_open_my_exchanges', {});
+                  setShowMyExchanges(true);
+                }}
                 className="text-lg font-bold flex items-center gap-2 cursor-pointer active:opacity-70"
               >
                 <ShoppingBag className="text-blue-500" size={20} />
@@ -195,7 +212,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
 
             {latestPendingExchange ? (
               <div
-                onClick={() => setShowMyExchanges(true)}
+                onClick={() => {
+                  trackCEvent('c_profile_open_my_exchanges', {});
+                  setShowMyExchanges(true);
+                }}
                 className="bg-blue-50/50 rounded-xl p-4 flex items-center gap-4 border border-blue-100/50 cursor-pointer active:scale-[0.98] transition-transform"
               >
                 <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden">
@@ -216,7 +236,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
               </div>
             ) : (
               <button
-                onClick={() => setShowMyExchanges(true)}
+                onClick={() => {
+                  trackCEvent('c_profile_open_my_exchanges', {});
+                  setShowMyExchanges(true);
+                }}
                 className="w-full text-left bg-slate-50 rounded-xl p-4 border border-slate-100 text-sm text-slate-500"
               >
                 暂无待核销兑换，点击查看历史兑换记录
@@ -228,7 +251,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
         <section className="px-4 mt-6 space-y-4">
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
             <button
-              onClick={() => setShowStudyRecords(true)}
+              onClick={() => {
+                trackCEvent('c_profile_open_study_records', {});
+                setShowStudyRecords(true);
+              }}
               className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors"
             >
               <BookOpen className="text-blue-500 mr-4" size={24} />
@@ -237,7 +263,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
             </button>
 
             <button
-              onClick={() => setShowFavorites(true)}
+              onClick={() => {
+                trackCEvent('c_profile_open_favorites', {});
+                setShowFavorites(true);
+              }}
               className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors"
             >
               <Heart className="text-rose-500 mr-4" size={24} />
@@ -246,7 +275,10 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
             </button>
 
             <button
-              onClick={() => setShowFamilyMembers(true)}
+              onClick={() => {
+                trackCEvent('c_profile_open_family_members', {});
+                setShowFamilyMembers(true);
+              }}
               className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors"
             >
               <Users className="text-green-500 mr-4" size={24} />
@@ -257,7 +289,13 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
               <ChevronRight className="text-slate-300" size={20} />
             </button>
 
-            <button onClick={onGoInsurance} className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors">
+            <button
+              onClick={() => {
+                trackCEvent('c_profile_open_policies', {});
+                onGoInsurance();
+              }}
+              className="w-full flex items-center px-5 py-4 border-b border-slate-50 active:bg-slate-50 transition-colors"
+            >
               <FileText className="text-amber-500 mr-4" size={24} />
               <span className="text-base font-medium flex-1 text-left">我的保单</span>
               <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2">在保 {policyCount}</span>
@@ -302,14 +340,14 @@ export default function Profile({ requireAuth, isAuthenticated, user, pointsBala
           <StudyRecords
             onClose={() => setShowStudyRecords(false)}
             courses={courses}
-            onOpenCourse={(c) => setSelectedCourse(c)}
+            onOpenCourse={(c) => openCourseWithTrack('profile_study_records', c)}
           />
         )}
         {showFavorites && (
           <MyFavorites
             onClose={() => setShowFavorites(false)}
             courses={courses}
-            onOpenCourse={(c) => setSelectedCourse(c)}
+            onOpenCourse={(c) => openCourseWithTrack('profile_favorites', c)}
           />
         )}
         {showFamilyMembers && (

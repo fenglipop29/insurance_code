@@ -1,6 +1,6 @@
 # 埋点事件字典（v1）
 
-更新时间：2026-02-25
+更新时间：2026-02-27
 
 ## 统一上报接口
 
@@ -35,6 +35,9 @@
 - `c_sign_in_failed`
   - 触发：签到失败
   - properties：`code`
+- `c_share_success`
+  - 触发：C端客户分享成功（系统分享/复制链接均计入）
+  - properties：`tab`、`method`
 
 ## B端事件
 
@@ -44,6 +47,9 @@
 - `b_page_view`
   - 触发：底部Tab切换后
   - properties：`tab`
+- `b_tools_share_success`
+  - 触发：B端客户分享成功（内容/活动/商品/积分活动）
+  - properties：`kind`、`sharePath`、`shareMethod`
 
 ## P端事件
 

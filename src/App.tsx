@@ -246,7 +246,7 @@ export default function App() {
         </button>
       )}
       {currentTab === 'home' && (
-        <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} onSignIn={handleSignIn} />
+        <Home requireAuth={requireAuth} onOpenMall={openPointsMall} onOpenAdvisor={openAdvisorDetail} onSignIn={handleSignIn} user={user} />
       )}
       {currentTab === 'learning' && <Learning />}
       {currentTab === 'insurance' && <InsuranceManagement />}

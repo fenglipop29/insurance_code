@@ -1,6 +1,6 @@
 # 前端 Mock 字段 -> 接口字段映射表（逐页面）
 
-文档路径：`/Users/wenshuping/Documents/New project/insurance_code/docs/frontend-mock-field-mapping.md`
+文档路径：`./frontend-mock-field-mapping.md`
 
 适用范围：当前已联调页面（活动中心、积分商城、学习、保障管理、个人中心中的兑换相关）。
 

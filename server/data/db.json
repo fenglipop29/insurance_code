@@ -1,6 +1,10 @@
 {
   "users": [
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 1,
       "id": 1,
       "name": "张三",
       "mobile": "13800000000",
@@ -9,6 +13,10 @@
       "createdAt": "2026-02-22T15:18:13.014Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 2,
       "id": 2,
       "name": "张三",
       "mobile": "13800000002",
@@ -17,6 +25,10 @@
       "createdAt": "2026-02-23T00:04:36.355Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 3,
       "id": 3,
       "name": "张三",
       "mobile": "13800000003",
@@ -25,6 +37,10 @@
       "createdAt": "2026-02-23T00:05:09.924Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 4,
       "id": 4,
       "name": "张三",
       "mobile": "13800000009",
@@ -33,6 +49,10 @@
       "createdAt": "2026-02-23T00:06:43.094Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 5,
       "id": 5,
       "name": "哈哈",
       "mobile": "18616135811",
@@ -41,6 +61,10 @@
       "createdAt": "2026-02-23T00:19:34.375Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 6,
       "id": 6,
       "name": "张三",
       "mobile": "13800000124",
@@ -49,6 +73,10 @@
       "createdAt": "2026-02-23T02:49:01.541Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 7,
       "id": 7,
       "name": "张三",
       "mobile": "13900000003",
@@ -57,6 +85,10 @@
       "createdAt": "2026-02-23T03:45:22.330Z"
     },
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 8,
       "id": 8,
       "name": "张三",
       "mobile": "13800000125",
@@ -65,6 +97,314 @@
       "createdAt": "2026-02-23T03:58:12.540Z"
     }
   ],
+  "tenants": [
+    {
+      "id": 1,
+      "name": "默认租户",
+      "status": "active",
+      "type": "company",
+      "createdAt": "2026-02-25T13:06:04.940Z"
+    }
+  ],
+  "orgUnits": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "name": "默认机构",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "teams": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "orgId": 1,
+      "name": "默认团队",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "agents": [
+    {
+      "id": 8001,
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "name": "默认业务员",
+      "status": "active",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "key": "platform_admin",
+      "name": "平台管理员"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "key": "company_admin",
+      "name": "公司管理员"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "key": "team_lead",
+      "name": "团队主管"
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "key": "agent",
+      "name": "业务员"
+    },
+    {
+      "id": 5,
+      "tenantId": 1,
+      "key": "customer",
+      "name": "客户"
+    }
+  ],
+  "permissions": [
+    {
+      "id": 1,
+      "key": "tenant:read",
+      "name": "查看租户"
+    },
+    {
+      "id": 2,
+      "key": "tenant:write",
+      "name": "管理租户"
+    },
+    {
+      "id": 3,
+      "key": "customer:read",
+      "name": "查看客户"
+    },
+    {
+      "id": 4,
+      "key": "customer:write",
+      "name": "编辑客户"
+    },
+    {
+      "id": 5,
+      "key": "order:writeoff",
+      "name": "核销订单"
+    },
+    {
+      "id": 6,
+      "key": "order:refund",
+      "name": "退款订单"
+    },
+    {
+      "id": 7,
+      "key": "stats:read",
+      "name": "查看统计"
+    },
+    {
+      "id": 8,
+      "key": "approval:write",
+      "name": "审批处理"
+    },
+    {
+      "id": 9,
+      "key": "scope:tenant:all",
+      "name": "租户全量数据范围"
+    },
+    {
+      "id": 10,
+      "key": "scope:team:all",
+      "name": "团队数据范围"
+    }
+  ],
+  "rolePermissions": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 1
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 2
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 3
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 4
+    },
+    {
+      "id": 5,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 5
+    },
+    {
+      "id": 6,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 6
+    },
+    {
+      "id": 7,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 7
+    },
+    {
+      "id": 8,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 8
+    },
+    {
+      "id": 9,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 9
+    },
+    {
+      "id": 10,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 1
+    },
+    {
+      "id": 11,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 3
+    },
+    {
+      "id": 12,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 4
+    },
+    {
+      "id": 13,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 5
+    },
+    {
+      "id": 14,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 7
+    },
+    {
+      "id": 15,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 8
+    },
+    {
+      "id": 16,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 10
+    },
+    {
+      "id": 17,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 3
+    },
+    {
+      "id": 18,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 4
+    },
+    {
+      "id": 19,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 5
+    },
+    {
+      "id": 20,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 10
+    },
+    {
+      "id": 21,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 3
+    },
+    {
+      "id": 22,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 4
+    },
+    {
+      "id": 23,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 5
+    }
+  ],
+  "userRoles": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "userType": "employee",
+      "userId": 9001,
+      "roleId": 1
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "userType": "employee",
+      "userId": 9002,
+      "roleId": 2
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "userType": "agent",
+      "userId": 8001,
+      "roleId": 4
+    }
+  ],
+  "approvals": [],
+  "auditLogs": [],
+  "trackEvents": [
+    {
+      "id": 1,
+      "createdAt": "2026-02-26T07:11:18.933Z",
+      "event": "c_page_view",
+      "properties": {
+        "tab": "home",
+        "authed": false
+      },
+      "actorType": "employee",
+      "actorId": 9001,
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "path": "/",
+      "source": "c-web",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    }
+  ],
+  "idempotencyRecords": [],
+  "domainEvents": [],
+  "outboxEvents": [],
   "smsCodes": [
     {
       "id": 1,
@@ -832,6 +1172,7 @@
       "createdAt": "2026-02-23T10:03:01.430Z"
     }
   ],
+  "pointAccounts": [],
   "pointTransactions": [
     {
       "id": 1,
@@ -1146,21 +1487,21 @@
     {
       "id": 1,
       "name": "智能低糖电饭煲",
-      "pointsCost": 1200,
+      "pointsCost": 99,
       "stock": 50,
       "isActive": true
     },
     {
       "id": 2,
       "name": "家庭体检套餐",
-      "pointsCost": 800,
+      "pointsCost": 79,
       "stock": 80,
       "isActive": true
     },
     {
       "id": 3,
       "name": "健康管理咨询券",
-      "pointsCost": 300,
+      "pointsCost": 59,
       "stock": 996,
       "isActive": true
     }
@@ -1200,6 +1541,106 @@
       "writtenOffAt": "2026-02-23T02:50:59.419Z"
     }
   ],
+  "orders": [],
+  "orderPayments": [],
+  "orderFulfillments": [],
+  "orderRefunds": [],
+  "bCustomerTags": [],
+  "bCustomerTagRels": [],
+  "bCustomerActivities": [],
+  "bWriteOffRecords": [],
+  "pLearningMaterials": [],
+  "pProducts": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "name": "智能低糖电饭煲",
+      "pointsCost": 99,
+      "stock": 50,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "name": "家庭体检套餐",
+      "pointsCost": 79,
+      "stock": 80,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "name": "健康管理咨询券",
+      "pointsCost": 59,
+      "stock": 996,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    }
+  ],
+  "pActivities": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "title": "连续签到7天领鸡蛋",
+      "category": "sign",
+      "rewardPoints": 10,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "title": "保险知识王者赛",
+      "category": "competition",
+      "rewardPoints": 50,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "title": "完善保障信息",
+      "category": "task",
+      "rewardPoints": 100,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "title": "推荐好友加入",
+      "category": "invite",
+      "rewardPoints": 500,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    }
+  ],
+  "mallActivities": [],
+  "statsWarehouse": [],
+  "reconciliationReports": [],
   "learningCourses": [
     {
       "id": 1,

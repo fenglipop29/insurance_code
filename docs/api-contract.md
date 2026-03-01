@@ -1,6 +1,6 @@
 # 保云链前后端联调接口文档（v0.3）
 
-文档路径：`/Users/wenshuping/Documents/New project/insurance_code/docs/api-contract.md`
+文档路径：`./api-contract.md`
 
 Base URL：`http://127.0.0.1:4000`
 

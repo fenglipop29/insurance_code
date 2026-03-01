@@ -1,6 +1,6 @@
 # db.json -> PostgreSQL 数据校验报告（v1）
 
-- 输入文件：`/Users/wenshuping/Documents/insurance_increase/insurance_code/server/data/db.json`
+- 输入文件：`../server/data/db.json`
 - 生成时间：`2026-02-23T11:26:45.160Z`
 - 结论：PASS（可迁移）
 

@@ -1,0 +1,115 @@
+name: quality-gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  insurance-code-gates:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: insurance_code
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: insurance_code/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Typecheck (C/API)
+        run: npm run typecheck
+
+      - name: Docs link check
+        run: npm run docs:check-links
+
+      - name: Tenant fallback risk check
+        run: npm run risk:check-tenant-fallback
+
+      - name: Start API skeleton
+        run: |
+          npm run dev:api:skeleton > /tmp/p-admin-smoke-api.log 2>&1 &
+          echo $! > /tmp/p-admin-smoke-api.pid
+          for i in {1..60}; do
+            if curl -fsS "http://127.0.0.1:4000/api/health" >/dev/null; then
+              echo "API is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to start in time"
+          cat /tmp/p-admin-smoke-api.log || true
+          exit 1
+
+      - name: Smoke test (p-admin modules)
+        run: npm run test:smoke:p-admin-modules
+
+      - name: Smoke test (p-admin modules, company-admin strict)
+        if: ${{ secrets.P_COMPANY_ADMIN_ACCOUNT != '' && secrets.P_COMPANY_ADMIN_PASSWORD != '' }}
+        env:
+          P_COMPANY_ADMIN_ACCOUNT: ${{ secrets.P_COMPANY_ADMIN_ACCOUNT }}
+          P_COMPANY_ADMIN_PASSWORD: ${{ secrets.P_COMPANY_ADMIN_PASSWORD }}
+          REQUIRE_COMPANY_WORKFORCE: "true"
+        run: npm run test:smoke:p-admin-modules
+
+      - name: Stop API skeleton
+        if: always()
+        run: |
+          if [ -f /tmp/p-admin-smoke-api.pid ]; then
+            kill "$(cat /tmp/p-admin-smoke-api.pid)" || true
+          fi
+          cat /tmp/p-admin-smoke-api.log || true
+
+  insurance-b-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: insurance_code_B
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: insurance_code_B/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Typecheck (B)
+        run: npm run typecheck
+
+  insurance-p-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: insurance_code_P
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: insurance_code_P/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Typecheck (P)
+        run: npm run typecheck

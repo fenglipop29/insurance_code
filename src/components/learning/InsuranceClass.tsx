@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { PlayCircle, BookOpen, FileText, Heart } from 'lucide-react';
 import { api, type LearningCourse } from '../../lib/api';
+import { trackCEvent } from '../../lib/track';
 
 export interface Course extends Omit<LearningCourse, 'type'> {
   type: 'video' | 'comic' | 'article';
@@ -17,6 +18,25 @@ function iconByType(type: string) {
   return FileText;
 }
 
+function resolveCourseImage(course: Course): string {
+  const abs = (raw: string) => {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v)) return v;
+    if (v.startsWith('/')) {
+      const base = (import.meta as any).env?.VITE_API_BASE || 'http://127.0.0.1:4000';
+      return `${String(base).replace(/\/$/, '')}${v}`;
+    }
+    return v;
+  };
+  if (course.image) return abs(course.image);
+  const media = Array.isArray((course as any).media) ? (course as any).media : [];
+  const first = media[0];
+  if (typeof first === 'string') return abs(first);
+  if (first && typeof first === 'object') return abs(String(first.preview || first.url || first.path || first.name || ''));
+  return `https://picsum.photos/seed/course${course.id}/800/450`;
+}
+
 export default function InsuranceClass({ onSelectCourse }: Props) {
   const [activeCategory, setActiveCategory] = useState('全部');
   const [categories, setCategories] = useState<string[]>(['全部']);
@@ -31,7 +51,9 @@ export default function InsuranceClass({ onSelectCourse }: Props) {
         if (!mounted) return;
         setCategories(data.categories?.length ? data.categories : ['全部']);
         setCourses((data.courses || []).map((c) => ({ ...c, icon: iconByType(c.type) })));
+        trackCEvent('c_learning_list_load_success', { total: Number((data.courses || []).length) });
       } catch (e) {
+        trackCEvent('c_learning_list_load_failed', {});
         console.error(e);
       } finally {
         if (mounted) setLoading(false);
@@ -54,7 +76,10 @@ export default function InsuranceClass({ onSelectCourse }: Props) {
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => {
+              setActiveCategory(cat);
+              trackCEvent('c_learning_filter_category', { category: cat });
+            }}
             className={`px-5 py-1.5 rounded-full text-sm font-bold transition-colors ${
               activeCategory === cat
                 ? 'bg-blue-500 text-white shadow-md shadow-blue-200'
@@ -78,11 +103,14 @@ export default function InsuranceClass({ onSelectCourse }: Props) {
         {filteredCourses.map((course) => (
           <div
             key={course.id}
-            onClick={() => onSelectCourse(course)}
+            onClick={() => {
+              trackCEvent('c_learning_open_detail', { courseId: course.id, category: course.category, type: course.type });
+              onSelectCourse(course);
+            }}
             className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer active:scale-[0.98] transition-transform"
           >
             <div className="relative h-40 w-full">
-              <img src={course.image} alt={course.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <img src={resolveCourseImage(course)} alt={course.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               <div className={`absolute top-3 left-3 ${course.color} backdrop-blur-sm text-white px-2.5 py-1 rounded-lg flex items-center gap-1 text-xs font-bold`}>
                 <course.icon size={14} />
                 {course.typeLabel}

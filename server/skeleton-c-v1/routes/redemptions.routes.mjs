@@ -1,5 +1,6 @@
-import { authRequired } from '../common/middleware.mjs';
+import { authRequired, validateBody, validateParams } from '../common/middleware.mjs';
 import { appendAuditLog, appendDomainEvent, getState, persistState } from '../common/state.mjs';
+import { redemptionIdParamsSchema, writeoffBodySchema } from '../schemas/redemptions.schemas.mjs';
 
 export function registerRedemptionsRoutes(app) {
   app.get('/api/redemptions', authRequired, (req, res) => {
@@ -15,8 +16,8 @@ export function registerRedemptionsRoutes(app) {
     res.json({ list });
   });
 
-  app.post('/api/redemptions/:id/writeoff', authRequired, (req, res) => {
-    const id = Number(req.params.id);
+  app.post('/api/redemptions/:id/writeoff', authRequired, validateParams(redemptionIdParamsSchema), validateBody(writeoffBodySchema), (req, res) => {
+    const { id } = req.params;
     const state = getState();
     const row = state.redemptions.find((item) => item.id === id && item.userId === req.user.id);
 
@@ -27,7 +28,7 @@ export function registerRedemptionsRoutes(app) {
       return res.status(409).json({ code: 'ALREADY_WRITTEN_OFF', message: '已核销' });
     }
 
-    const token = String(req.body?.token || '').trim();
+    const token = req.body?.token || '';
     if (token && token !== row.writeoffToken) {
       return res.status(400).json({ code: 'INVALID_TOKEN', message: '核销码错误' });
     }

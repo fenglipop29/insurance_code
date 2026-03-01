@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { chromium, firefox, webkit } = require('playwright');
 
 const WEB_BASE = 'http://127.0.0.1:3003';
 
@@ -47,7 +47,37 @@ async function check(page, navIndex, selectors, label) {
 (async () => {
   const token = process.argv[2] || '';
   const out = [];
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const launchers = [
+    ['chromium', () => chromium.launch({ headless: true })],
+    ['firefox', () => firefox.launch({ headless: true })],
+    ['webkit', () => webkit.launch({ headless: true })],
+  ];
+  let browser = null;
+  let browserName = '';
+  const launchErrors = [];
+  for (const [name, fn] of launchers) {
+    try {
+      browser = await fn();
+      browserName = name;
+      break;
+    } catch (err) {
+      launchErrors.push({ browser: name, message: err?.message || String(err) });
+    }
+  }
+  if (!browser) {
+    console.log(
+      JSON.stringify(
+        {
+          skipped: true,
+          reason: 'browser_launch_failed',
+          launchErrors,
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
 
   const context = await browser.newContext();
   await context.addInitScript((t) => {
@@ -67,6 +97,6 @@ async function check(page, navIndex, selectors, label) {
   out.push(await check(page3, 4, ['button:has-text("积分商城")'], 'profile'));
   await page3.close();
 
-  console.log(JSON.stringify({ out }, null, 2));
+  console.log(JSON.stringify({ browser: browserName, out }, null, 2));
   await browser.close();
 })();

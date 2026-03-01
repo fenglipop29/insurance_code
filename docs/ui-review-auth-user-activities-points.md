@@ -6,14 +6,14 @@
 ## P1（影响联调/验收）
 
 1. 核销码展示格式与后端契约不一致
-- 文件：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3/客户端小程序UI/我的兑换列表/code.html:86`
+- 文件：外部原型「我的兑换列表」页面（code.html:86）
 - 现状：展示为 `8829 4012`
 - 契约要求：`POST /api/mall/redeem` 返回 `token`（格式如 `EX...`），`POST /api/redemptions/:id/writeoff` 使用该 token 进行核销校验。
 - 风险：前端若提交展示码而不是接口 token，会触发 `INVALID_TOKEN`。
 - 建议：UI直接展示并提交后端返回的 `writeoffToken/token`（可脱敏展示，但提交需原值）。
 
 2. 实名入口文案不符合需求口径
-- 文件：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3/客户端小程序UI/实名认证-初始状态/code.html:66`
+- 文件：外部原型「实名认证-初始状态」页面（code.html:66）
 - 现状：标题为“实名认证”
 - 需求要求：统一使用“基础身份确认”相关措辞。
 - 风险：与需求文档不一致，验收可能被打回。
@@ -22,20 +22,20 @@
 ## P2（建议尽快收口）
 
 3. 兑换列表出现“已过期”状态，未与当前后端状态模型对齐
-- 文件：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3/客户端小程序UI/我的兑换列表/code.html:130`
+- 文件：外部原型「我的兑换列表」页面（code.html:130）
 - 现状：直接展示“已过期”标签
 - 后端现状：状态字段为 `pending` / `written_off`，过期通过 `expiresAt` 判断。
 - 风险：前后端状态枚举不一致，可能引发筛选和文案映射问题。
 - 建议：前端以 `expiresAt` 派生展示“已过期”，不要新增后端状态值。
 
 4. 积分商城页底部 Tab 高亮与当前页面语义不一致
-- 文件：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3/客户端小程序UI/积分商城/code.html:196`
+- 文件：外部原型「积分商城」页面（code.html:196）
 - 现状：高亮“首页”
 - 风险：用户定位感弱，影响导航一致性。
 - 建议：若商城从活动中心进入，优先高亮“活动中心”或采用无高亮策略。
 
 5. 商品积分示例与当前后端联调数据差异较大
-- 文件：`/Users/wenshuping/Desktop/code/insurance_increase/ui_product 3/客户端小程序UI/商品详情_(积分兑换)/code.html:66`
+- 文件：外部原型「商品详情（积分兑换）」页面（code.html:66）
 - 现状：示例为 `1250` 积分
 - 后端样例：`1200/800/300`
 - 风险：联调时容易被误判为后端错误。

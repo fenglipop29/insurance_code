@@ -5,10 +5,20 @@ import InsuranceClass, { Course } from '../components/learning/InsuranceClass';
 import FunGames from '../components/learning/FunGames';
 import PracticalTools from '../components/learning/PracticalTools';
 import CourseDetail from '../components/learning/CourseDetail';
+import { trackCEvent } from '../lib/track';
 
 export default function Learning() {
   const [activeTab, setActiveTab] = useState('class'); // class, games, tools
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  React.useEffect(() => {
+    trackCEvent('c_learning_enter', { tab: 'class' });
+  }, []);
+
+  const switchTab = (next: string) => {
+    setActiveTab(next);
+    trackCEvent('c_learning_switch_tab', { tab: next });
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen pb-24">
@@ -27,19 +37,19 @@ export default function Learning() {
         {/* Tab Bar */}
         <div className="flex border-b border-slate-100">
           <button 
-            onClick={() => setActiveTab('class')}
+            onClick={() => switchTab('class')}
             className={`flex-1 py-3 text-center font-bold text-base border-b-4 transition-colors ${activeTab === 'class' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-500'}`}
           >
             保险课堂
           </button>
           <button 
-            onClick={() => setActiveTab('games')}
+            onClick={() => switchTab('games')}
             className={`flex-1 py-3 text-center font-bold text-base border-b-4 transition-colors ${activeTab === 'games' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-500'}`}
           >
             趣味游戏
           </button>
           <button 
-            onClick={() => setActiveTab('tools')}
+            onClick={() => switchTab('tools')}
             className={`flex-1 py-3 text-center font-bold text-base border-b-4 transition-colors ${activeTab === 'tools' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-500'}`}
           >
             实用工具
