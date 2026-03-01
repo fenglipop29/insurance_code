@@ -1,0 +1,20 @@
+Title,Description,Priority,Estimate,Assignee,State,Labels,Project,Due Date,Dependencies
+[ARCH-V1] 建立模块化目录与数据库连接层,"建立Express模块化目录(router/service/repo)，接入PostgreSQL连接池与Prisma基础配置。",1,8,BE1,Backlog,"arch-v1,backend,c-end,p0",insurance_code_v1,2026-02-23,
+[ARCH-V1] 初始化Prisma迁移基线,"创建初始迁移目录并提交v1基线迁移，确保staging可执行。",1,6,DBA,Backlog,"arch-v1,db,migration,p0",insurance_code_v1,2026-02-23,[ARCH-V1] 建立模块化目录与数据库连接层
+[ARCH-V1] 配置test/staging环境模板与密钥,"准备DATABASE_URL/REDIS_URL/JWT_SECRET/S3配置模板，完成staging空服务部署。",1,6,DevOps,Backlog,"arch-v1,devops,env,p0",insurance_code_v1,2026-02-23,
+[ARCH-V1] 创建核心表与索引(v1),"落地users/points/mall/redemption/audit/outbox核心表及索引约束。",1,8,DBA,Backlog,"arch-v1,db,schema,p0",insurance_code_v1,2026-02-24,[ARCH-V1] 初始化Prisma迁移基线
+[ARCH-V1] 编写db.json到PostgreSQL迁移脚本,"实现历史数据导入、清洗、幂等执行与核对报告输出。",1,8,BE2,Backlog,"arch-v1,migration,data,p0",insurance_code_v1,2026-02-24,[ARCH-V1] 创建核心表与索引(v1)
+[ARCH-V1] 改造实名认证与鉴权链路,"完成send-code/verify-basic/me改造，保持openapi-c-v1语义一致。",1,8,BE1,Backlog,"arch-v1,auth,c-end,p0",insurance_code_v1,2026-02-25,[ARCH-V1] 创建核心表与索引(v1)
+[ARCH-V1] 改造活动列表/签到/任务完成,"完成activities/sign-in/activities/{id}/complete改造与实名门槛拦截。",1,8,BE2,Backlog,"arch-v1,activity,c-end,p0",insurance_code_v1,2026-02-25,[ARCH-V1] 改造实名认证与鉴权链路
+[ARCH-V1] 实现统一积分记账服务,"实现point_accounts + point_transactions事务记账与幂等键。",1,8,BE1,Backlog,"arch-v1,points,c-end,p0",insurance_code_v1,2026-02-26,[ARCH-V1] 改造活动列表/签到/任务完成
+[ARCH-V1] 改造商城兑换与核销链路,"完成mall/items、mall/redeem、redemptions、writeoff接口与防重逻辑。",1,8,BE2,Backlog,"arch-v1,mall,redemption,p0",insurance_code_v1,2026-02-26,[ARCH-V1] 实现统一积分记账服务
+[ARCH-V1] 改造学习与保单模块接口,"完成learning与insurance相关接口改造，保持字段映射一致。",2,8,BE2,Backlog,"arch-v1,learning,insurance,p1",insurance_code_v1,2026-02-27,[ARCH-V1] 改造商城兑换与核销链路
+[ARCH-V1] 第一次端到端联调回归,"覆盖实名->签到->积分->兑换->核销主链路并输出缺陷单。",1,6,QA,Backlog,"arch-v1,qa,e2e,p0",insurance_code_v1,2026-02-27,[ARCH-V1] 改造学习与保单模块接口
+[ARCH-V1] 接入Prometheus/Sentry与结构化日志,"新增指标埋点、异常采集、告警规则与trace_id日志。",2,8,DevOps,Backlog,"arch-v1,observability,devops,p1",insurance_code_v1,2026-03-02,[ARCH-V1] 第一次端到端联调回归
+[ARCH-V1] 备份恢复策略与脚本落地,"实现每日全量+WAL增量备份，完成恢复脚本与演练记录。",2,6,DBA,Backlog,"arch-v1,db,backup,p1",insurance_code_v1,2026-03-02,[ARCH-V1] 第一次端到端联调回归
+[ARCH-V1] 核心接口性能与SQL调优,"针对签到/兑换/核销链路优化索引和SQL，达到P95<=800ms。",1,8,BE1,Backlog,"arch-v1,performance,p0",insurance_code_v1,2026-03-03,[ARCH-V1] 接入Prometheus/Sentry与结构化日志
+[ARCH-V1] 并发冲突专项测试,"验证幂等、库存并发、核销重复提交，输出专项报告。",1,6,QA,Backlog,"arch-v1,qa,concurrency,p0",insurance_code_v1,2026-03-03,[ARCH-V1] 核心接口性能与SQL调优
+[ARCH-V1] staging全量发布与冒烟,"部署staging并执行契约与核心流程冒烟，出具发布记录。",1,6,DevOps,Backlog,"arch-v1,release,staging,p0",insurance_code_v1,2026-03-04,[ARCH-V1] 并发冲突专项测试
+[ARCH-V1] Go/No-Go发布评审,"评审风险、缺陷、回滚预案，确认是否进入生产窗口。",1,2,TL,Backlog,"arch-v1,go-no-go,p0",insurance_code_v1,2026-03-04,[ARCH-V1] staging全量发布与冒烟
+[ARCH-V1] 生产发布与回滚演练,"执行生产发布演练，验证回滚RTO<=60分钟。",1,6,DevOps,Backlog,"arch-v1,prod,rollback,p0",insurance_code_v1,2026-03-05,[ARCH-V1] Go/No-Go发布评审
+[ARCH-V1] 正式发布与48小时值守,"完成正式上线，执行值守与问题闭环。",1,8,TL,Backlog,"arch-v1,prod,launch,p0",insurance_code_v1,2026-03-06,[ARCH-V1] 生产发布与回滚演练

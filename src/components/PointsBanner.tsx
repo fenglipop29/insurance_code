@@ -16,9 +16,9 @@ export default function PointsBanner({ onOpenMall }: Props) {
           <div className="inline-block bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider mb-2">
             Hot Reward
           </div>
-          <h3 className="text-white text-xl font-bold">去兑换积分</h3>
+          <h3 className="text-white text-xl font-bold notranslate" translate="no">去兑换积分</h3>
           <p className="text-white/90 text-xs mt-1">超值好礼随心兑，鸡蛋、话费等你拿</p>
-          <button className="mt-3 bg-white text-violet-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
+          <button className="mt-3 bg-white text-violet-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm notranslate" translate="no">
             去积分商城
           </button>
         </div>

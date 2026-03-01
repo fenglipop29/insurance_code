@@ -1,0 +1,770 @@
+openapi: 3.0.3
+info:
+  title: Baoyunlian C API
+  version: 1.0.0
+  description: Frozen C-side API contract for frontend-backend integration.
+servers:
+  - url: http://127.0.0.1:4000
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+  - name: Auth
+  - name: User
+  - name: Activities
+  - name: Points
+  - name: Mall
+  - name: Redemptions
+  - name: Learning
+  - name: Insurance
+paths:
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  service: { type: string }
+                required: [ok, service]
+
+  /api/bootstrap:
+    get:
+      tags: [User]
+      summary: Bootstrap data
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    allOf:
+                      - $ref: '#/components/schemas/User'
+                    nullable: true
+                  balance:
+                    type: integer
+                  tabs:
+                    type: array
+                    items: { type: string }
+                required: [user, balance, tabs]
+
+  /api/auth/send-code:
+    post:
+      tags: [Auth]
+      summary: Send SMS code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobile: { type: string, pattern: '^1[3-9]\\d{9}$' }
+              required: [mobile]
+      responses:
+        '200':
+          description: Sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  message: { type: string }
+                  dev_code: { type: string }
+                required: [ok, message]
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/auth/verify-basic:
+    post:
+      tags: [Auth]
+      summary: Verify basic identity and login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 2, maxLength: 20 }
+                mobile: { type: string, pattern: '^1[3-9]\\d{9}$' }
+                code: { type: string, pattern: '^\\d{6}$' }
+              required: [name, mobile, code]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  user: { $ref: '#/components/schemas/User' }
+                required: [token, user]
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/me:
+    get:
+      tags: [User]
+      summary: Current user and balance
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+                  balance: { type: integer }
+                required: [user, balance]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/activities:
+    get:
+      tags: [Activities]
+      summary: Activities list
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activities:
+                    type: array
+                    items: { $ref: '#/components/schemas/Activity' }
+                  balance: { type: integer }
+                  taskProgress:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      completed: { type: integer }
+                    required: [total, completed]
+                required: [activities, balance, taskProgress]
+
+  /api/activities/{id}/complete:
+    post:
+      tags: [Activities]
+      summary: Complete activity task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  reward: { type: integer }
+                  balance: { type: integer }
+                required: [ok, reward, balance]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/sign-in:
+    post:
+      tags: [Activities]
+      summary: Daily sign-in
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  reward: { type: integer }
+                  balance: { type: integer }
+                required: [ok, reward, balance]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/points/summary:
+    get:
+      tags: [Points]
+      summary: Points summary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance: { type: integer }
+                required: [balance]
+
+  /api/points/transactions:
+    get:
+      tags: [Points]
+      summary: Points transactions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                required: [list]
+
+  /api/mall/items:
+    get:
+      tags: [Mall]
+      summary: Mall items
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/MallItem' }
+                required: [items]
+
+  /api/mall/redeem:
+    post:
+      tags: [Mall]
+      summary: Redeem item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itemId: { type: integer }
+              required: [itemId]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  token: { type: string }
+                  balance: { type: integer }
+                required: [ok, token, balance]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/redemptions:
+    get:
+      tags: [Redemptions]
+      summary: Redemption list
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                required: [list]
+
+  /api/redemptions/{id}/writeoff:
+    post:
+      tags: [Redemptions]
+      summary: Writeoff redemption
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                required: [ok]
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '410':
+          description: Gone
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorBody' }
+
+  /api/learning/courses:
+    get:
+      tags: [Learning]
+      summary: Learning courses
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items: { type: string }
+                  courses:
+                    type: array
+                    items: { $ref: '#/components/schemas/LearningCourse' }
+                required: [categories, courses]
+
+  /api/learning/courses/{id}:
+    get:
+      tags: [Learning]
+      summary: Learning course detail
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  course: { $ref: '#/components/schemas/LearningCourse' }
+                required: [course]
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/learning/courses/{id}/complete:
+    post:
+      tags: [Learning]
+      summary: Complete course and earn points
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  duplicated: { type: boolean }
+                  reward: { type: integer }
+                  balance: { type: integer }
+                  message: { type: string }
+                required: [ok, duplicated, reward, balance]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/learning/games:
+    get:
+      tags: [Learning]
+      summary: Learning games
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                required: [games]
+
+  /api/learning/tools:
+    get:
+      tags: [Learning]
+      summary: Learning tools
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tools:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                required: [tools]
+
+  /api/insurance/overview:
+    get:
+      tags: [Insurance]
+      summary: Insurance overview
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                    properties:
+                      totalCoverage: { type: integer }
+                      healthScore: { type: integer }
+                      activePolicies: { type: integer }
+                      annualPremium: { type: integer }
+                    required: [totalCoverage, healthScore, activePolicies, annualPremium]
+                  familyMembers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        name: { type: string }
+                        avatar: { type: string }
+                        score: { type: integer }
+                        coveredTypes:
+                          type: array
+                          items: { type: string }
+                      required: [id, name, avatar, score, coveredTypes]
+                  reminders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        title: { type: string }
+                        desc: { type: string }
+                        tag: { type: string }
+                        actionText: { type: string }
+                        kind: { type: string }
+                      required: [id, title, desc, tag, actionText, kind]
+                required: [summary, familyMembers, reminders]
+
+  /api/insurance/policies:
+    get:
+      tags: [Insurance]
+      summary: Insurance policies
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policies:
+                    type: array
+                    items: { $ref: '#/components/schemas/InsurancePolicy' }
+                required: [policies]
+
+    post:
+      tags: [Insurance]
+      summary: Create insurance policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company: { type: string }
+                name: { type: string }
+                applicant: { type: string }
+                insured: { type: string }
+                date: { type: string }
+                paymentPeriod: { type: string }
+                coveragePeriod: { type: string }
+                amount: { type: integer }
+                firstPremium: { type: integer }
+                type: { type: string }
+              required: [company, name, applicant, insured, date, paymentPeriod, coveragePeriod, amount, firstPremium]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  policy: { $ref: '#/components/schemas/InsurancePolicy' }
+                required: [ok, policy]
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/insurance/policies/{id}:
+    get:
+      tags: [Insurance]
+      summary: Insurance policy detail
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policy: { $ref: '#/components/schemas/InsurancePolicy' }
+                required: [policy]
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/insurance/policies/scan:
+    post:
+      tags: [Insurance]
+      summary: OCR scan for policy form autofill
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    additionalProperties: true
+                required: [ok, data]
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    TooManyRequests:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+
+  schemas:
+    ErrorBody:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+      required: [code, message]
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        mobile: { type: string }
+        is_verified_basic: { type: boolean }
+        verified_at: { type: string, nullable: true }
+      required: [id, name, mobile, is_verified_basic]
+
+    Activity:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        category:
+          type: string
+          enum: [sign, task, invite, competition]
+        rewardPoints: { type: integer }
+        sortOrder: { type: integer }
+        participants: { type: integer }
+        completed: { type: boolean }
+        canComplete: { type: boolean }
+      required: [id, title, category, rewardPoints, sortOrder]
+
+    MallItem:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        pointsCost: { type: integer }
+        stock: { type: integer }
+        isActive: { type: boolean }
+      required: [id, name, pointsCost, stock, isActive]
+
+    LearningCourse:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        desc: { type: string }
+        type:
+          type: string
+          enum: [video, comic, article]
+        typeLabel: { type: string }
+        progress: { type: integer }
+        timeLeft: { type: string }
+        image: { type: string }
+        action: { type: string }
+        color: { type: string }
+        btnColor: { type: string }
+        points: { type: integer }
+        category: { type: string }
+        content: { type: string }
+      required:
+        - id
+        - title
+        - desc
+        - type
+        - typeLabel
+        - progress
+        - timeLeft
+        - image
+        - action
+        - color
+        - btnColor
+        - points
+        - category
+        - content
+
+    InsurancePolicy:
+      type: object
+      properties:
+        id: { type: integer }
+        company: { type: string }
+        name: { type: string }
+        type: { type: string }
+        icon:
+          type: string
+          enum: [stethoscope, heart-pulse, shield]
+        amount: { type: integer }
+        nextPayment: { type: string }
+        status: { type: string }
+        applicant: { type: string }
+        insured: { type: string }
+        periodStart: { type: string }
+        periodEnd: { type: string }
+        annualPremium: { type: integer }
+        paymentPeriod: { type: string }
+        coveragePeriod: { type: string }
+        responsibilities:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              desc: { type: string }
+              limit: { type: integer }
+            required: [name, desc, limit]
+        paymentHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string }
+              amount: { type: integer }
+              note: { type: string }
+              status: { type: string }
+            required: [date, amount, note, status]
+        policyNo: { type: string }
+      required:
+        - id
+        - company
+        - name
+        - type
+        - icon
+        - amount
+        - nextPayment
+        - status
+        - applicant
+        - insured
+        - periodStart
+        - periodEnd
+        - annualPremium
+        - paymentPeriod
+        - coveragePeriod
+        - responsibilities
+        - paymentHistory
+        - policyNo

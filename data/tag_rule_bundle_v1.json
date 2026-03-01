@@ -1,0 +1,162 @@
+{
+  "version": "v1",
+  "tenantId": 1,
+  "tags": [
+    {
+      "tagCode": "TAG_VALUE_TIER",
+      "tagName": "客户价值等级",
+      "tagType": "enum",
+      "source": "rule_engine",
+      "description": "按年收入映射客户价值分层",
+      "status": "active",
+      "valueSchema": { "enum": ["高价值", "中价值", "普通"] }
+    },
+    {
+      "tagCode": "TAG_RENEW_LEVEL",
+      "tagName": "续保意向等级",
+      "tagType": "enum",
+      "source": "rule_engine",
+      "description": "按续保意向分映射高/中/低",
+      "status": "active",
+      "valueSchema": { "enum": ["高", "中", "低"] }
+    },
+    {
+      "tagCode": "TAG_NEW_LEAD",
+      "tagName": "新线索",
+      "tagType": "boolean",
+      "source": "rule_engine",
+      "description": "近30天登录次数达到阈值",
+      "status": "active",
+      "valueSchema": { "enum": [true, false] }
+    },
+    {
+      "tagCode": "TAG_CHECKIN_ACTIVE",
+      "tagName": "签到活跃",
+      "tagType": "enum",
+      "source": "rule_engine",
+      "description": "按30天签到天数分层",
+      "status": "active",
+      "valueSchema": { "enum": ["高活跃", "中活跃", "低活跃"] }
+    },
+    {
+      "tagCode": "TAG_MEMBER_TIER",
+      "tagName": "会员等级分层",
+      "tagType": "enum",
+      "source": "rule_engine",
+      "description": "按member_level映射金卡/银卡/普通",
+      "status": "active",
+      "valueSchema": { "enum": ["金卡", "银卡", "普通"] }
+    }
+  ],
+  "rules": [
+    {
+      "ruleCode": "RULE_VALUE_TIER_MAP",
+      "ruleName": "客户价值等级映射",
+      "targetTagCodes": ["TAG_VALUE_TIER"],
+      "priority": 10,
+      "status": "active",
+      "conditionDsl": {
+        "op": "and",
+        "children": [
+          { "category": "customer_attribute", "metric": "annual_income", "cmp": ">=", "value": 0 }
+        ]
+      },
+      "outputExpr": {
+        "mode": "map",
+        "sourceMetric": "annual_income",
+        "mappings": [
+          { "cmp": ">=", "value": 1000000, "output": "高价值" },
+          { "cmp": ">=", "value": 300000, "output": "中价值" },
+          { "cmp": "<", "value": 300000, "output": "普通" }
+        ],
+        "defaultValue": "普通"
+      }
+    },
+    {
+      "ruleCode": "RULE_RENEW_LEVEL_MAP",
+      "ruleName": "续保意向等级映射",
+      "targetTagCodes": ["TAG_RENEW_LEVEL"],
+      "priority": 20,
+      "status": "active",
+      "conditionDsl": {
+        "op": "and",
+        "children": [
+          { "category": "customer_behavior", "metric": "renew_intent_score", "cmp": ">=", "value": 0 }
+        ]
+      },
+      "outputExpr": {
+        "mode": "map",
+        "sourceMetric": "renew_intent_score",
+        "mappings": [
+          { "cmp": ">=", "value": 80, "output": "高" },
+          { "cmp": ">=", "value": 50, "output": "中" },
+          { "cmp": "<", "value": 50, "output": "低" }
+        ],
+        "defaultValue": "低"
+      }
+    },
+    {
+      "ruleCode": "RULE_NEW_LEAD_CONST",
+      "ruleName": "新线索识别",
+      "targetTagCodes": ["TAG_NEW_LEAD"],
+      "priority": 30,
+      "status": "active",
+      "conditionDsl": {
+        "op": "and",
+        "children": [
+          { "category": "customer_behavior", "metric": "login_count_30d_c", "cmp": ">=", "value": 3 }
+        ]
+      },
+      "outputExpr": {
+        "mode": "const",
+        "value": "true"
+      }
+    },
+    {
+      "ruleCode": "RULE_CHECKIN_ACTIVE_MAP",
+      "ruleName": "签到活跃分层",
+      "targetTagCodes": ["TAG_CHECKIN_ACTIVE"],
+      "priority": 40,
+      "status": "active",
+      "conditionDsl": {
+        "op": "and",
+        "children": [
+          { "category": "customer_behavior", "metric": "sign_days_30d", "cmp": ">=", "value": 0 }
+        ]
+      },
+      "outputExpr": {
+        "mode": "map",
+        "sourceMetric": "sign_days_30d",
+        "mappings": [
+          { "cmp": ">=", "value": 20, "output": "高活跃" },
+          { "cmp": ">=", "value": 8, "output": "中活跃" },
+          { "cmp": "<", "value": 8, "output": "低活跃" }
+        ],
+        "defaultValue": "低活跃"
+      }
+    },
+    {
+      "ruleCode": "RULE_MEMBER_TIER_MAP",
+      "ruleName": "会员等级映射",
+      "targetTagCodes": ["TAG_MEMBER_TIER"],
+      "priority": 50,
+      "status": "active",
+      "conditionDsl": {
+        "op": "and",
+        "children": [
+          { "category": "customer_attribute", "metric": "member_level", "cmp": ">=", "value": 1 }
+        ]
+      },
+      "outputExpr": {
+        "mode": "map",
+        "sourceMetric": "member_level",
+        "mappings": [
+          { "cmp": ">=", "value": 5, "output": "金卡" },
+          { "cmp": ">=", "value": 3, "output": "银卡" },
+          { "cmp": "<", "value": 3, "output": "普通" }
+        ],
+        "defaultValue": "普通"
+      }
+    }
+  ]
+}

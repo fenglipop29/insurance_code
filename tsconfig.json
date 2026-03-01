@@ -18,9 +18,13 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@contracts/*": [
+        "../shared-contracts/*"
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": "."
   }
 }

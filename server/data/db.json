@@ -1,21 +1,417 @@
 {
   "users": [
     {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 1,
       "id": 1,
       "name": "张三",
       "mobile": "13800000000",
       "isVerifiedBasic": true,
-      "verifiedAt": "2026-02-22T15:18:13.014Z",
+      "verifiedAt": "2026-02-23T10:18:49.852Z",
       "createdAt": "2026-02-22T15:18:13.014Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 2,
+      "id": 2,
+      "name": "张三",
+      "mobile": "13800000002",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T00:04:36.355Z",
+      "createdAt": "2026-02-23T00:04:36.355Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 3,
+      "id": 3,
+      "name": "张三",
+      "mobile": "13800000003",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T00:05:09.924Z",
+      "createdAt": "2026-02-23T00:05:09.924Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 4,
+      "id": 4,
+      "name": "张三",
+      "mobile": "13800000009",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T00:06:43.094Z",
+      "createdAt": "2026-02-23T00:06:43.094Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 5,
+      "id": 5,
+      "name": "哈哈",
+      "mobile": "18616135811",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T07:14:32.997Z",
+      "createdAt": "2026-02-23T00:19:34.375Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 6,
+      "id": 6,
+      "name": "张三",
+      "mobile": "13800000124",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T02:49:01.541Z",
+      "createdAt": "2026-02-23T02:49:01.541Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 7,
+      "id": 7,
+      "name": "张三",
+      "mobile": "13900000003",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T03:45:22.330Z",
+      "createdAt": "2026-02-23T03:45:22.330Z"
+    },
+    {
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "ownerUserId": 8,
+      "id": 8,
+      "name": "张三",
+      "mobile": "13800000125",
+      "isVerifiedBasic": true,
+      "verifiedAt": "2026-02-23T03:58:12.540Z",
+      "createdAt": "2026-02-23T03:58:12.540Z"
     }
   ],
+  "tenants": [
+    {
+      "id": 1,
+      "name": "默认租户",
+      "status": "active",
+      "type": "company",
+      "createdAt": "2026-02-25T13:06:04.940Z"
+    }
+  ],
+  "orgUnits": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "name": "默认机构",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "teams": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "orgId": 1,
+      "name": "默认团队",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "agents": [
+    {
+      "id": 8001,
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "name": "默认业务员",
+      "status": "active",
+      "createdAt": "2026-02-25T13:06:04.945Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "key": "platform_admin",
+      "name": "平台管理员"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "key": "company_admin",
+      "name": "公司管理员"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "key": "team_lead",
+      "name": "团队主管"
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "key": "agent",
+      "name": "业务员"
+    },
+    {
+      "id": 5,
+      "tenantId": 1,
+      "key": "customer",
+      "name": "客户"
+    }
+  ],
+  "permissions": [
+    {
+      "id": 1,
+      "key": "tenant:read",
+      "name": "查看租户"
+    },
+    {
+      "id": 2,
+      "key": "tenant:write",
+      "name": "管理租户"
+    },
+    {
+      "id": 3,
+      "key": "customer:read",
+      "name": "查看客户"
+    },
+    {
+      "id": 4,
+      "key": "customer:write",
+      "name": "编辑客户"
+    },
+    {
+      "id": 5,
+      "key": "order:writeoff",
+      "name": "核销订单"
+    },
+    {
+      "id": 6,
+      "key": "order:refund",
+      "name": "退款订单"
+    },
+    {
+      "id": 7,
+      "key": "stats:read",
+      "name": "查看统计"
+    },
+    {
+      "id": 8,
+      "key": "approval:write",
+      "name": "审批处理"
+    },
+    {
+      "id": 9,
+      "key": "scope:tenant:all",
+      "name": "租户全量数据范围"
+    },
+    {
+      "id": 10,
+      "key": "scope:team:all",
+      "name": "团队数据范围"
+    }
+  ],
+  "rolePermissions": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 1
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 2
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 3
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 4
+    },
+    {
+      "id": 5,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 5
+    },
+    {
+      "id": 6,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 6
+    },
+    {
+      "id": 7,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 7
+    },
+    {
+      "id": 8,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 8
+    },
+    {
+      "id": 9,
+      "tenantId": 1,
+      "roleId": 1,
+      "permissionId": 9
+    },
+    {
+      "id": 10,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 1
+    },
+    {
+      "id": 11,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 3
+    },
+    {
+      "id": 12,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 4
+    },
+    {
+      "id": 13,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 5
+    },
+    {
+      "id": 14,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 7
+    },
+    {
+      "id": 15,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 8
+    },
+    {
+      "id": 16,
+      "tenantId": 1,
+      "roleId": 2,
+      "permissionId": 10
+    },
+    {
+      "id": 17,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 3
+    },
+    {
+      "id": 18,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 4
+    },
+    {
+      "id": 19,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 5
+    },
+    {
+      "id": 20,
+      "tenantId": 1,
+      "roleId": 3,
+      "permissionId": 10
+    },
+    {
+      "id": 21,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 3
+    },
+    {
+      "id": 22,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 4
+    },
+    {
+      "id": 23,
+      "tenantId": 1,
+      "roleId": 4,
+      "permissionId": 5
+    }
+  ],
+  "userRoles": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "userType": "employee",
+      "userId": 9001,
+      "roleId": 1
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "userType": "employee",
+      "userId": 9002,
+      "roleId": 2
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "userType": "agent",
+      "userId": 8001,
+      "roleId": 4
+    }
+  ],
+  "approvals": [],
+  "auditLogs": [],
+  "trackEvents": [
+    {
+      "id": 1,
+      "createdAt": "2026-02-26T07:11:18.933Z",
+      "event": "c_page_view",
+      "properties": {
+        "tab": "home",
+        "authed": false
+      },
+      "actorType": "employee",
+      "actorId": 9001,
+      "tenantId": 1,
+      "orgId": 1,
+      "teamId": 1,
+      "path": "/",
+      "source": "c-web",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    }
+  ],
+  "idempotencyRecords": [],
+  "domainEvents": [],
+  "outboxEvents": [],
   "smsCodes": [
     {
       "id": 1,
       "mobile": "13800000000",
       "code": "123456",
       "expiresAt": "2026-02-22T15:22:44.057Z",
-      "used": false,
+      "used": true,
       "createdAt": "2026-02-22T15:17:44.057Z"
     },
     {
@@ -25,6 +421,374 @@
       "expiresAt": "2026-02-22T15:23:13.002Z",
       "used": true,
       "createdAt": "2026-02-22T15:18:13.002Z"
+    },
+    {
+      "id": 3,
+      "mobile": "13800000002",
+      "code": "123456",
+      "expiresAt": "2026-02-23T00:09:36.309Z",
+      "used": true,
+      "createdAt": "2026-02-23T00:04:36.310Z"
+    },
+    {
+      "id": 4,
+      "mobile": "13800000003",
+      "code": "123456",
+      "expiresAt": "2026-02-23T00:10:09.872Z",
+      "used": true,
+      "createdAt": "2026-02-23T00:05:09.872Z"
+    },
+    {
+      "id": 5,
+      "mobile": "13800000009",
+      "code": "123456",
+      "expiresAt": "2026-02-23T00:11:43.045Z",
+      "used": true,
+      "createdAt": "2026-02-23T00:06:43.045Z"
+    },
+    {
+      "id": 6,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T00:23:31.568Z",
+      "used": true,
+      "createdAt": "2026-02-23T00:18:31.569Z"
+    },
+    {
+      "id": 7,
+      "mobile": "13800000124",
+      "code": "123456",
+      "expiresAt": "2026-02-23T02:54:01.430Z",
+      "used": true,
+      "createdAt": "2026-02-23T02:49:01.430Z"
+    },
+    {
+      "id": 8,
+      "mobile": "13900000003",
+      "code": "123456",
+      "expiresAt": "2026-02-23T03:50:22.307Z",
+      "used": true,
+      "createdAt": "2026-02-23T03:45:22.307Z"
+    },
+    {
+      "id": 9,
+      "mobile": "13800000125",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:03:12.526Z",
+      "used": true,
+      "createdAt": "2026-02-23T03:58:12.526Z"
+    },
+    {
+      "id": 10,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:16:12.486Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:11:12.486Z"
+    },
+    {
+      "id": 11,
+      "mobile": "18616113581",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:16:48.802Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:11:48.802Z"
+    },
+    {
+      "id": 12,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:17:18.987Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:12:18.987Z"
+    },
+    {
+      "id": 13,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:23:03.974Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:18:03.974Z"
+    },
+    {
+      "id": 14,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:23:57.753Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:18:57.753Z"
+    },
+    {
+      "id": 15,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:52:09.076Z",
+      "used": true,
+      "createdAt": "2026-02-23T04:47:09.076Z"
+    },
+    {
+      "id": 16,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T04:59:24.600Z",
+      "used": false,
+      "createdAt": "2026-02-23T04:54:24.600Z"
+    },
+    {
+      "id": 17,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:10:33.984Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:05:33.984Z"
+    },
+    {
+      "id": 18,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:10:33.996Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:05:33.996Z"
+    },
+    {
+      "id": 19,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:12:38.653Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:07:38.653Z"
+    },
+    {
+      "id": 20,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:12:57.329Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:07:57.329Z"
+    },
+    {
+      "id": 21,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:15:14.530Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:10:14.530Z"
+    },
+    {
+      "id": 22,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:15:25.507Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:10:25.507Z"
+    },
+    {
+      "id": 23,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:16:14.327Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:11:14.327Z"
+    },
+    {
+      "id": 24,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:16:38.594Z",
+      "used": false,
+      "createdAt": "2026-02-23T05:11:38.594Z"
+    },
+    {
+      "id": 25,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:29:01.660Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:24:01.660Z"
+    },
+    {
+      "id": 26,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:31:38.390Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:26:38.391Z"
+    },
+    {
+      "id": 27,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:33:29.526Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:28:29.527Z"
+    },
+    {
+      "id": 28,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:43:38.254Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:38:38.255Z"
+    },
+    {
+      "id": 29,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T05:58:09.739Z",
+      "used": true,
+      "createdAt": "2026-02-23T05:53:09.740Z"
+    },
+    {
+      "id": 30,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T06:28:53.351Z",
+      "used": true,
+      "createdAt": "2026-02-23T06:23:53.351Z"
+    },
+    {
+      "id": 31,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T06:32:13.134Z",
+      "used": true,
+      "createdAt": "2026-02-23T06:27:13.135Z"
+    },
+    {
+      "id": 32,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T06:39:14.431Z",
+      "used": true,
+      "createdAt": "2026-02-23T06:34:14.431Z"
+    },
+    {
+      "id": 33,
+      "mobile": "18616135811",
+      "code": "123456",
+      "expiresAt": "2026-02-23T07:19:29.625Z",
+      "used": true,
+      "createdAt": "2026-02-23T07:14:29.625Z"
+    },
+    {
+      "id": 34,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T09:01:40.470Z",
+      "used": true,
+      "createdAt": "2026-02-23T08:56:40.471Z"
+    },
+    {
+      "id": 35,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T09:52:43.135Z",
+      "used": true,
+      "createdAt": "2026-02-23T09:47:43.136Z"
+    },
+    {
+      "id": 36,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T09:54:48.610Z",
+      "used": true,
+      "createdAt": "2026-02-23T09:49:48.611Z"
+    },
+    {
+      "id": 37,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:05:34.320Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:00:34.320Z"
+    },
+    {
+      "id": 38,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:08:04.673Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:03:04.673Z"
+    },
+    {
+      "id": 39,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:10:33.641Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:05:33.641Z"
+    },
+    {
+      "id": 40,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:13:43.446Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:08:43.446Z"
+    },
+    {
+      "id": 41,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:13:57.324Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:08:57.324Z"
+    },
+    {
+      "id": 42,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:17:11.366Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:12:11.366Z"
+    },
+    {
+      "id": 43,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:17:25.235Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:12:25.235Z"
+    },
+    {
+      "id": 44,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:18:24.584Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:13:24.584Z"
+    },
+    {
+      "id": 45,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:19:17.591Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:14:17.591Z"
+    },
+    {
+      "id": 46,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:20:10.058Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:15:10.058Z"
+    },
+    {
+      "id": 47,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:22:09.686Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:17:09.686Z"
+    },
+    {
+      "id": 48,
+      "mobile": "13800000000",
+      "code": "123456",
+      "expiresAt": "2026-02-23T10:23:31.953Z",
+      "used": true,
+      "createdAt": "2026-02-23T10:18:31.953Z"
     }
   ],
   "sessions": [
@@ -33,6 +797,264 @@
       "userId": 1,
       "expiresAt": "2026-03-24T15:18:13.015Z",
       "createdAt": "2026-02-22T15:18:13.015Z"
+    },
+    {
+      "token": "b7b34e11-e421-42cf-bda2-56c9afc636c9",
+      "userId": 2,
+      "expiresAt": "2026-03-25T00:04:36.356Z",
+      "createdAt": "2026-02-23T00:04:36.356Z"
+    },
+    {
+      "token": "d72d4aa1-5562-456b-be60-10921af5fcd3",
+      "userId": 3,
+      "expiresAt": "2026-03-25T00:05:09.924Z",
+      "createdAt": "2026-02-23T00:05:09.924Z"
+    },
+    {
+      "token": "b7e16f4a-bfb5-45a4-a2e2-253ac6f74b11",
+      "userId": 4,
+      "expiresAt": "2026-03-25T00:06:43.094Z",
+      "createdAt": "2026-02-23T00:06:43.094Z"
+    },
+    {
+      "token": "09b2b05c-15f0-414a-a0ea-a59377d8474e",
+      "userId": 5,
+      "expiresAt": "2026-03-25T00:19:34.375Z",
+      "createdAt": "2026-02-23T00:19:34.375Z"
+    },
+    {
+      "token": "f9047d45-dad5-4a8b-bd1a-cfaede0eae96",
+      "userId": 6,
+      "expiresAt": "2026-03-25T02:49:01.542Z",
+      "createdAt": "2026-02-23T02:49:01.542Z"
+    },
+    {
+      "token": "20afe912-c55c-4c41-bc7c-0f34d52026c2",
+      "userId": 7,
+      "expiresAt": "2026-03-25T03:45:22.332Z",
+      "createdAt": "2026-02-23T03:45:22.332Z"
+    },
+    {
+      "token": "e2f37737-8ae7-457d-ba6e-6363b157c0fd",
+      "userId": 8,
+      "expiresAt": "2026-03-25T03:58:12.541Z",
+      "createdAt": "2026-02-23T03:58:12.541Z"
+    },
+    {
+      "token": "792678f8-fc90-489f-8bd0-07a923ac7d23",
+      "userId": 1,
+      "expiresAt": "2026-03-25T04:47:09.092Z",
+      "createdAt": "2026-02-23T04:47:09.092Z"
+    },
+    {
+      "token": "c4e96017-26b0-451e-9303-cbf6414e8321",
+      "userId": 1,
+      "expiresAt": "2026-03-25T05:05:34.008Z",
+      "createdAt": "2026-02-23T05:05:34.008Z"
+    },
+    {
+      "token": "20c33a42-3fd9-4824-a65b-92f93fbd8be7",
+      "userId": 1,
+      "expiresAt": "2026-03-25T05:28:30.768Z",
+      "createdAt": "2026-02-23T05:28:30.768Z"
+    },
+    {
+      "token": "1b3e00da-3ae8-4c3e-b29b-ffbdb50fdf5e",
+      "userId": 5,
+      "expiresAt": "2026-03-25T05:38:42.277Z",
+      "createdAt": "2026-02-23T05:38:42.277Z"
+    },
+    {
+      "token": "b79e0aff-45c2-4e3c-bcaa-10ebcdedc27d",
+      "userId": 5,
+      "expiresAt": "2026-03-25T05:53:12.959Z",
+      "createdAt": "2026-02-23T05:53:12.959Z"
+    },
+    {
+      "token": "917f8993-1bb8-41a2-a460-9c8148277335",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:16:20.568Z",
+      "createdAt": "2026-02-23T06:16:20.568Z"
+    },
+    {
+      "token": "aac34955-6139-4344-88e1-39c4cea71924",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:17:21.509Z",
+      "createdAt": "2026-02-23T06:17:21.509Z"
+    },
+    {
+      "token": "d8183a60-6c1f-49f7-8a1f-0ea0916a3860",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:17:44.510Z",
+      "createdAt": "2026-02-23T06:17:44.510Z"
+    },
+    {
+      "token": "137548dd-ed58-404e-a764-13d51694e6ea",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:19:24.227Z",
+      "createdAt": "2026-02-23T06:19:24.227Z"
+    },
+    {
+      "token": "a32c35f8-4381-4d5e-beb6-7c24d393db3d",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:23:54.012Z",
+      "createdAt": "2026-02-23T06:23:54.012Z"
+    },
+    {
+      "token": "24bce025-02ce-4874-bc17-7786d3b22d86",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:27:13.998Z",
+      "createdAt": "2026-02-23T06:27:13.998Z"
+    },
+    {
+      "token": "1bc39a24-154c-4e6b-95d4-50f27d5450c8",
+      "userId": 1,
+      "expiresAt": "2026-03-25T06:28:22.509Z",
+      "createdAt": "2026-02-23T06:28:22.509Z"
+    },
+    {
+      "token": "5d582df2-8e59-4b87-aaa2-82160716a0f2",
+      "userId": 5,
+      "expiresAt": "2026-03-25T06:34:17.899Z",
+      "createdAt": "2026-02-23T06:34:17.899Z"
+    },
+    {
+      "token": "d6f7eb4a-2e3c-4aa3-9c1e-43bc8483c437",
+      "userId": 5,
+      "expiresAt": "2026-03-25T07:14:32.998Z",
+      "createdAt": "2026-02-23T07:14:32.998Z"
+    },
+    {
+      "token": "ae379e50-9034-4f9e-870f-9954b6e71540",
+      "userId": 1,
+      "expiresAt": "2026-03-25T08:56:41.125Z",
+      "createdAt": "2026-02-23T08:56:41.125Z"
+    },
+    {
+      "token": "ffe6d00e-2dce-4bd0-9e5c-40b872c87e4f",
+      "userId": 1,
+      "expiresAt": "2026-03-25T09:47:43.793Z",
+      "createdAt": "2026-02-23T09:47:43.793Z"
+    },
+    {
+      "token": "46d0184d-fe80-4877-af21-ee5ec6c25361",
+      "userId": 1,
+      "expiresAt": "2026-03-25T09:49:46.947Z",
+      "createdAt": "2026-02-23T09:49:46.947Z"
+    },
+    {
+      "token": "74846ed6-08bb-43ea-b66a-85c8ded0c814",
+      "userId": 1,
+      "expiresAt": "2026-03-25T09:50:54.197Z",
+      "createdAt": "2026-02-23T09:50:54.197Z"
+    },
+    {
+      "token": "b39612a1-f5a7-4a88-8ff7-f46c4cefbc88",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:00:29.121Z",
+      "createdAt": "2026-02-23T10:00:29.121Z"
+    },
+    {
+      "token": "5cdb4521-7bae-47a4-a65e-288b28d00a20",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:00:34.876Z",
+      "createdAt": "2026-02-23T10:00:34.876Z"
+    },
+    {
+      "token": "f61f12e2-0873-4545-8bc0-38ea7e7ceece",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:03:01.320Z",
+      "createdAt": "2026-02-23T10:03:01.320Z"
+    },
+    {
+      "token": "bfdcbe3e-22c7-4607-88ef-c03c42bc6e97",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:03:05.252Z",
+      "createdAt": "2026-02-23T10:03:05.252Z"
+    },
+    {
+      "token": "5dcff441-b5b8-4865-aaaf-8159174404f6",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:03:39.074Z",
+      "createdAt": "2026-02-23T10:03:39.074Z"
+    },
+    {
+      "token": "cfff0b84-0453-4ca9-92a4-a37c229dce1c",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:05:34.213Z",
+      "createdAt": "2026-02-23T10:05:34.213Z"
+    },
+    {
+      "token": "b4550f63-5157-43ed-ab1e-db5971913afc",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:08:44.030Z",
+      "createdAt": "2026-02-23T10:08:44.030Z"
+    },
+    {
+      "token": "7646817e-56f5-4f0b-9851-fb7b5bf02d51",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:08:57.725Z",
+      "createdAt": "2026-02-23T10:08:57.725Z"
+    },
+    {
+      "token": "5197af02-9af0-4609-b8ed-9d95099e4b4a",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:12:11.937Z",
+      "createdAt": "2026-02-23T10:12:11.937Z"
+    },
+    {
+      "token": "79f1594e-db80-4219-8397-f23171c3c6ab",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:12:25.636Z",
+      "createdAt": "2026-02-23T10:12:25.636Z"
+    },
+    {
+      "token": "b009fa2b-a191-483f-85a5-f42d4dfc74d3",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:13:25.121Z",
+      "createdAt": "2026-02-23T10:13:25.121Z"
+    },
+    {
+      "token": "0400b9e0-1fb1-44ca-8f7f-307543c2c020",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:14:18.154Z",
+      "createdAt": "2026-02-23T10:14:18.154Z"
+    },
+    {
+      "token": "d241b4f5-4a04-40a7-8ef9-76623ba42c2d",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:15:10.636Z",
+      "createdAt": "2026-02-23T10:15:10.636Z"
+    },
+    {
+      "token": "caaebd9b-1eef-46a2-b049-9b651504cdd5",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:16:24.836Z",
+      "createdAt": "2026-02-23T10:16:24.837Z"
+    },
+    {
+      "token": "c24db3d1-0294-4eab-9983-c812beb4f439",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:17:10.250Z",
+      "createdAt": "2026-02-23T10:17:10.250Z"
+    },
+    {
+      "token": "01791696-081d-4ff2-b5ac-bf21c2c1d27b",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:18:32.502Z",
+      "createdAt": "2026-02-23T10:18:32.502Z"
+    },
+    {
+      "token": "f3c3a1ac-5e95-4ac4-b75f-40e49370e180",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:18:36.449Z",
+      "createdAt": "2026-02-23T10:18:36.449Z"
+    },
+    {
+      "token": "6d781278-128d-4cba-bf45-bd84d64a21e1",
+      "userId": 1,
+      "expiresAt": "2026-03-25T10:18:49.852Z",
+      "createdAt": "2026-02-23T10:18:49.852Z"
     }
   ],
   "activities": [
@@ -65,6 +1087,40 @@
       "sortOrder": 4
     }
   ],
+  "activityCompletions": [
+    {
+      "id": 1,
+      "userId": 2,
+      "activityId": 3,
+      "completedDate": "2026-02-23",
+      "pointsAwarded": 100,
+      "createdAt": "2026-02-23T00:04:36.593Z"
+    },
+    {
+      "id": 2,
+      "userId": 3,
+      "activityId": 3,
+      "completedDate": "2026-02-23",
+      "pointsAwarded": 100,
+      "createdAt": "2026-02-23T00:05:09.970Z"
+    },
+    {
+      "id": 3,
+      "userId": 4,
+      "activityId": 3,
+      "completedDate": "2026-02-23",
+      "pointsAwarded": 100,
+      "createdAt": "2026-02-23T00:06:43.170Z"
+    },
+    {
+      "id": 4,
+      "userId": 6,
+      "activityId": 4,
+      "completedDate": "2026-02-23",
+      "pointsAwarded": 500,
+      "createdAt": "2026-02-23T02:49:01.715Z"
+    }
+  ],
   "signIns": [
     {
       "id": 1,
@@ -72,8 +1128,51 @@
       "signDate": "2026-02-22",
       "pointsAwarded": 10,
       "createdAt": "2026-02-22T15:18:24.829Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T00:04:36.426Z"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T00:05:09.962Z"
+    },
+    {
+      "id": 4,
+      "userId": 4,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T00:06:43.162Z"
+    },
+    {
+      "id": 5,
+      "userId": 6,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T02:49:01.746Z"
+    },
+    {
+      "id": 6,
+      "userId": 5,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T09:57:20.623Z"
+    },
+    {
+      "id": 7,
+      "userId": 1,
+      "signDate": "2026-02-23",
+      "pointsAwarded": 10,
+      "createdAt": "2026-02-23T10:03:01.430Z"
     }
   ],
+  "pointAccounts": [],
   "pointTransactions": [
     {
       "id": 1,
@@ -96,30 +1195,925 @@
       "balance": 210,
       "description": "每日签到奖励",
       "createdAt": "2026-02-22T15:18:24.829Z"
+    },
+    {
+      "id": 3,
+      "userId": 2,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "2",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T00:04:36.355Z"
+    },
+    {
+      "id": 4,
+      "userId": 2,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 210,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T00:04:36.426Z"
+    },
+    {
+      "id": 5,
+      "userId": 2,
+      "type": "earn",
+      "amount": 100,
+      "source": "activity_task",
+      "sourceId": "3",
+      "balance": 310,
+      "description": "完成活动 完善保障信息",
+      "createdAt": "2026-02-23T00:04:36.593Z"
+    },
+    {
+      "id": 6,
+      "userId": 2,
+      "type": "earn",
+      "amount": 50,
+      "source": "course_complete",
+      "sourceId": "1",
+      "balance": 360,
+      "description": "完成课程 如何使用手机申领医保报销",
+      "createdAt": "2026-02-23T00:04:36.645Z"
+    },
+    {
+      "id": 7,
+      "userId": 3,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "3",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T00:05:09.924Z"
+    },
+    {
+      "id": 8,
+      "userId": 3,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 210,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T00:05:09.962Z"
+    },
+    {
+      "id": 9,
+      "userId": 3,
+      "type": "earn",
+      "amount": 100,
+      "source": "activity_task",
+      "sourceId": "3",
+      "balance": 310,
+      "description": "完成活动 完善保障信息",
+      "createdAt": "2026-02-23T00:05:09.970Z"
+    },
+    {
+      "id": 10,
+      "userId": 3,
+      "type": "earn",
+      "amount": 50,
+      "source": "course_complete",
+      "sourceId": "1",
+      "balance": 360,
+      "description": "完成课程 如何使用手机申领医保报销",
+      "createdAt": "2026-02-23T00:05:09.977Z"
+    },
+    {
+      "id": 11,
+      "userId": 3,
+      "type": "consume",
+      "amount": 300,
+      "source": "redeem",
+      "sourceId": "1",
+      "balance": 60,
+      "description": "兑换 健康管理咨询券",
+      "createdAt": "2026-02-23T00:05:10.019Z"
+    },
+    {
+      "id": 12,
+      "userId": 4,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "4",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T00:06:43.094Z"
+    },
+    {
+      "id": 13,
+      "userId": 4,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 210,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T00:06:43.162Z"
+    },
+    {
+      "id": 14,
+      "userId": 4,
+      "type": "earn",
+      "amount": 100,
+      "source": "activity_task",
+      "sourceId": "3",
+      "balance": 310,
+      "description": "完成活动 完善保障信息",
+      "createdAt": "2026-02-23T00:06:43.170Z"
+    },
+    {
+      "id": 15,
+      "userId": 4,
+      "type": "earn",
+      "amount": 50,
+      "source": "course_complete",
+      "sourceId": "1",
+      "balance": 360,
+      "description": "完成课程 如何使用手机申领医保报销",
+      "createdAt": "2026-02-23T00:06:43.178Z"
+    },
+    {
+      "id": 16,
+      "userId": 4,
+      "type": "consume",
+      "amount": 300,
+      "source": "redeem",
+      "sourceId": "2",
+      "balance": 60,
+      "description": "兑换 健康管理咨询券",
+      "createdAt": "2026-02-23T00:06:43.310Z"
+    },
+    {
+      "id": 17,
+      "userId": 5,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "5",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T00:19:34.375Z"
+    },
+    {
+      "id": 18,
+      "userId": 6,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "6",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T02:49:01.541Z"
+    },
+    {
+      "id": 19,
+      "userId": 6,
+      "type": "earn",
+      "amount": 500,
+      "source": "activity_task",
+      "sourceId": "4",
+      "balance": 700,
+      "description": "完成活动 推荐好友加入",
+      "createdAt": "2026-02-23T02:49:01.715Z"
+    },
+    {
+      "id": 20,
+      "userId": 6,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 710,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T02:49:01.746Z"
+    },
+    {
+      "id": 21,
+      "userId": 2,
+      "type": "consume",
+      "amount": 300,
+      "source": "redeem",
+      "sourceId": "3",
+      "balance": 60,
+      "description": "兑换 健康管理咨询券",
+      "createdAt": "2026-02-23T02:50:59.291Z"
+    },
+    {
+      "id": 22,
+      "userId": 7,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "7",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T03:45:22.330Z"
+    },
+    {
+      "id": 23,
+      "userId": 7,
+      "type": "earn",
+      "amount": 20,
+      "source": "course_complete",
+      "sourceId": "3",
+      "balance": 220,
+      "description": "完成课程 2024养老金调整政策解读",
+      "createdAt": "2026-02-23T03:45:22.442Z"
+    },
+    {
+      "id": 24,
+      "userId": 8,
+      "type": "earn",
+      "amount": 200,
+      "source": "onboard",
+      "sourceId": "8",
+      "balance": 200,
+      "description": "新用户基础积分",
+      "createdAt": "2026-02-23T03:58:12.540Z"
+    },
+    {
+      "id": 25,
+      "userId": 8,
+      "type": "earn",
+      "amount": 50,
+      "source": "course_complete",
+      "sourceId": "1",
+      "balance": 250,
+      "description": "完成课程 如何使用手机申领医保报销",
+      "createdAt": "2026-02-23T03:58:12.625Z"
+    },
+    {
+      "id": 26,
+      "userId": 5,
+      "type": "earn",
+      "amount": 50,
+      "source": "course_complete",
+      "sourceId": "1",
+      "balance": 250,
+      "description": "完成课程 如何使用手机申领医保报销",
+      "createdAt": "2026-02-23T07:34:17.496Z"
+    },
+    {
+      "id": 27,
+      "userId": 5,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 260,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T09:57:20.623Z"
+    },
+    {
+      "id": 28,
+      "userId": 1,
+      "type": "earn",
+      "amount": 10,
+      "source": "daily_sign_in",
+      "sourceId": "2026-02-23",
+      "balance": 220,
+      "description": "每日签到奖励",
+      "createdAt": "2026-02-23T10:03:01.430Z"
     }
   ],
   "mallItems": [
     {
       "id": 1,
       "name": "智能低糖电饭煲",
-      "pointsCost": 1200,
+      "pointsCost": 99,
       "stock": 50,
       "isActive": true
     },
     {
       "id": 2,
       "name": "家庭体检套餐",
-      "pointsCost": 800,
+      "pointsCost": 79,
       "stock": 80,
       "isActive": true
     },
     {
       "id": 3,
       "name": "健康管理咨询券",
-      "pointsCost": 300,
-      "stock": 999,
+      "pointsCost": 59,
+      "stock": 996,
       "isActive": true
     }
   ],
-  "redemptions": []
+  "redemptions": [
+    {
+      "id": 1,
+      "userId": 3,
+      "itemId": 3,
+      "pointsCost": 300,
+      "status": "written_off",
+      "writeoffToken": "EX1771805110019263",
+      "expiresAt": "2026-03-25T00:05:10.019Z",
+      "createdAt": "2026-02-23T00:05:10.019Z",
+      "writtenOffAt": "2026-02-23T00:05:10.114Z"
+    },
+    {
+      "id": 2,
+      "userId": 4,
+      "itemId": 3,
+      "pointsCost": 300,
+      "status": "written_off",
+      "writeoffToken": "EX1771805203310618",
+      "expiresAt": "2026-03-25T00:06:43.310Z",
+      "createdAt": "2026-02-23T00:06:43.310Z",
+      "writtenOffAt": "2026-02-23T00:06:43.456Z"
+    },
+    {
+      "id": 3,
+      "userId": 2,
+      "itemId": 3,
+      "pointsCost": 300,
+      "status": "written_off",
+      "writeoffToken": "EX1771815059291576",
+      "expiresAt": "2026-03-25T02:50:59.291Z",
+      "createdAt": "2026-02-23T02:50:59.291Z",
+      "writtenOffAt": "2026-02-23T02:50:59.419Z"
+    }
+  ],
+  "orders": [],
+  "orderPayments": [],
+  "orderFulfillments": [],
+  "orderRefunds": [],
+  "bCustomerTags": [],
+  "bCustomerTagRels": [],
+  "bCustomerActivities": [],
+  "bWriteOffRecords": [],
+  "pLearningMaterials": [],
+  "pProducts": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "name": "智能低糖电饭煲",
+      "pointsCost": 99,
+      "stock": 50,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "name": "家庭体检套餐",
+      "pointsCost": 79,
+      "stock": 80,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "name": "健康管理咨询券",
+      "pointsCost": 59,
+      "stock": 996,
+      "shelfStatus": "on",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    }
+  ],
+  "pActivities": [
+    {
+      "id": 1,
+      "tenantId": 1,
+      "title": "连续签到7天领鸡蛋",
+      "category": "sign",
+      "rewardPoints": 10,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 2,
+      "tenantId": 1,
+      "title": "保险知识王者赛",
+      "category": "competition",
+      "rewardPoints": 50,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 3,
+      "tenantId": 1,
+      "title": "完善保障信息",
+      "category": "task",
+      "rewardPoints": 100,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    },
+    {
+      "id": 4,
+      "tenantId": 1,
+      "title": "推荐好友加入",
+      "category": "invite",
+      "rewardPoints": 500,
+      "status": "published",
+      "createdBy": null,
+      "creatorRole": "",
+      "templateScope": "tenant",
+      "createdAt": "2026-02-26T07:11:01.722Z"
+    }
+  ],
+  "mallActivities": [],
+  "statsWarehouse": [],
+  "reconciliationReports": [],
+  "learningCourses": [
+    {
+      "id": 1,
+      "title": "如何使用手机申领医保报销",
+      "desc": "手把手教您在手机上操作，简单又省时",
+      "type": "video",
+      "typeLabel": "视频课",
+      "progress": 80,
+      "timeLeft": "2 分钟",
+      "image": "https://picsum.photos/seed/course1/800/400",
+      "action": "继续学习",
+      "color": "bg-black/60",
+      "btnColor": "bg-blue-500 text-white",
+      "points": 50,
+      "category": "医疗",
+      "content": "本节课程将详细演示如何通过官方APP或微信小程序，在线提交医疗报销凭证。无需线下排队，只需准备好发票、病历等材料的照片，跟着视频一步步操作即可完成申领。"
+    },
+    {
+      "id": 2,
+      "title": "三分钟看懂您的保单保障",
+      "desc": "用通俗易懂的漫画带您理清保障范围",
+      "type": "comic",
+      "typeLabel": "趣味漫画",
+      "progress": 0,
+      "timeLeft": "约 3 分钟",
+      "image": "https://picsum.photos/seed/course2/800/400",
+      "action": "开始学习",
+      "color": "bg-blue-500",
+      "btnColor": "bg-blue-50 text-blue-600",
+      "points": 30,
+      "category": "理赔",
+      "content": "买完保险却不知道保什么？这篇漫画用生动的场景和比喻，帮您快速看懂保单中的核心条款：重疾险保哪些病？医疗险怎么报销？意外险包含哪些意外？让您的保单不再是天书。"
+    },
+    {
+      "id": 3,
+      "title": "2024养老金调整政策解读",
+      "desc": "为您划重点，看看每月能多领多少钱",
+      "type": "article",
+      "typeLabel": "实用图文",
+      "progress": 45,
+      "timeLeft": "剩 5 分钟",
+      "image": "https://picsum.photos/seed/course3/800/400",
+      "action": "继续阅读",
+      "color": "bg-slate-800",
+      "btnColor": "bg-blue-500 text-white",
+      "points": 20,
+      "category": "养老",
+      "content": "2024年国家基本养老金上调政策正式发布。本次调整采取定额调整、挂钩调整与适当倾斜相结合的办法。本文将为您详细解读调整比例、计算方法以及高龄退休人员的特殊倾斜政策。"
+    }
+  ],
+  "courseCompletions": [
+    {
+      "id": 1,
+      "userId": 2,
+      "courseId": 1,
+      "pointsAwarded": 50,
+      "createdAt": "2026-02-23T00:04:36.645Z"
+    },
+    {
+      "id": 2,
+      "userId": 3,
+      "courseId": 1,
+      "pointsAwarded": 50,
+      "createdAt": "2026-02-23T00:05:09.977Z"
+    },
+    {
+      "id": 3,
+      "userId": 4,
+      "courseId": 1,
+      "pointsAwarded": 50,
+      "createdAt": "2026-02-23T00:06:43.178Z"
+    },
+    {
+      "id": 4,
+      "userId": 7,
+      "courseId": 3,
+      "pointsAwarded": 20,
+      "createdAt": "2026-02-23T03:45:22.442Z"
+    },
+    {
+      "id": 5,
+      "userId": 8,
+      "courseId": 1,
+      "pointsAwarded": 50,
+      "createdAt": "2026-02-23T03:58:12.625Z"
+    },
+    {
+      "id": 6,
+      "userId": 5,
+      "courseId": 1,
+      "pointsAwarded": 50,
+      "createdAt": "2026-02-23T07:34:17.496Z"
+    }
+  ],
+  "learningGames": [
+    {
+      "id": 1,
+      "title": "风险大作战",
+      "desc": "识别生活中的潜在风险，保护你的小家",
+      "category": "风险认知",
+      "difficulty": 2,
+      "bestScore": "2500分",
+      "color": "bg-orange-500",
+      "lightColor": "bg-orange-50",
+      "textColor": "text-orange-600"
+    },
+    {
+      "id": 2,
+      "title": "条款连连看",
+      "desc": "消除晦涩难懂的保险术语，轻松学知识",
+      "category": "产品理解",
+      "difficulty": 3,
+      "bestScore": "通关第5关",
+      "color": "bg-indigo-500",
+      "lightColor": "bg-indigo-50",
+      "textColor": "text-indigo-600"
+    }
+  ],
+  "learningTools": [
+    {
+      "id": 1,
+      "title": "养老金计算器",
+      "desc": "输入参数，可视化未来养老资金缺口",
+      "color": "text-emerald-500",
+      "bg": "bg-emerald-50"
+    },
+    {
+      "id": 2,
+      "title": "保障缺口分析",
+      "desc": "问答式引导，生成家庭风险矩阵报告",
+      "color": "text-blue-500",
+      "bg": "bg-blue-50"
+    },
+    {
+      "id": 3,
+      "title": "理赔进度查询",
+      "desc": "关联已托管保单，实时查询理赔状态",
+      "color": "text-purple-500",
+      "bg": "bg-purple-50"
+    }
+  ],
+  "insuranceSummary": {
+    "totalCoverage": 6500000,
+    "healthScore": 85,
+    "activePolicies": 7,
+    "annualPremium": 61565
+  },
+  "familyMembers": [
+    {
+      "id": 1,
+      "name": "本人",
+      "avatar": "https://picsum.photos/seed/self/100/100",
+      "score": 85,
+      "coveredTypes": [
+        "医疗",
+        "重疾"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "妻子",
+      "avatar": "https://picsum.photos/seed/wife/100/100",
+      "score": 72,
+      "coveredTypes": [
+        "医疗",
+        "重疾"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "儿子",
+      "avatar": "https://picsum.photos/seed/son/100/100",
+      "score": 92,
+      "coveredTypes": [
+        "少儿",
+        "医疗",
+        "教育"
+      ]
+    }
+  ],
+  "insuranceReminders": [
+    {
+      "id": 1,
+      "title": "车险续保提醒",
+      "desc": "您的沪A·*****保单即将到期",
+      "tag": "剩 5 天",
+      "actionText": "立即续保",
+      "kind": "renewal"
+    },
+    {
+      "id": 2,
+      "title": "儿子生日提醒",
+      "desc": "别忘了为他准备生日礼物哦",
+      "tag": "明天",
+      "actionText": "查看福利",
+      "kind": "birthday"
+    },
+    {
+      "id": 3,
+      "title": "体检报告已生成",
+      "desc": "年度健康体检结果已更新",
+      "tag": "3天前",
+      "actionText": "已读",
+      "kind": "report"
+    }
+  ],
+  "policies": [
+    {
+      "id": 1,
+      "company": "平安健康保险股份有限公司",
+      "name": "尊享e生2024",
+      "type": "医疗",
+      "amount": 3000000,
+      "nextPayment": "2025-01-01",
+      "status": "保障中",
+      "applicant": "张*三",
+      "insured": "张*三",
+      "periodStart": "2024-01-01",
+      "periodEnd": "2024-12-31",
+      "annualPremium": 365,
+      "paymentPeriod": "1年交",
+      "coveragePeriod": "1年",
+      "responsibilities": [
+        {
+          "name": "一般医疗保险金",
+          "desc": "含住院/门诊手术/住院前后门诊",
+          "limit": 3000000
+        },
+        {
+          "name": "重疾医疗保险金",
+          "desc": "120种特定重大疾病",
+          "limit": 6000000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2024-01-01",
+          "amount": 365,
+          "note": "年度首缴",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "812345678901"
+    },
+    {
+      "id": 2,
+      "company": "中国人寿保险",
+      "name": "国寿福重疾险",
+      "type": "重疾",
+      "amount": 500000,
+      "nextPayment": "2024-08-15",
+      "status": "保障中",
+      "applicant": "张*三",
+      "insured": "张*三",
+      "periodStart": "2023-08-15",
+      "periodEnd": "2043-08-14",
+      "annualPremium": 12000,
+      "paymentPeriod": "20年交",
+      "coveragePeriod": "终身",
+      "responsibilities": [
+        {
+          "name": "重大疾病保险金",
+          "desc": "120种重大疾病",
+          "limit": 500000
+        },
+        {
+          "name": "轻症疾病保险金",
+          "desc": "40种轻症，最高6次",
+          "limit": 150000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2024-08-15",
+          "amount": 12000,
+          "note": "年度缴费",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "812345678902"
+    },
+    {
+      "id": 3,
+      "company": "太平洋保险",
+      "name": "太保意外伤害险",
+      "type": "意外",
+      "amount": 1000000,
+      "nextPayment": "2024-11-20",
+      "status": "保障中",
+      "applicant": "张*三",
+      "insured": "张*三",
+      "periodStart": "2023-11-20",
+      "periodEnd": "2024-11-19",
+      "annualPremium": 1200,
+      "paymentPeriod": "1年交",
+      "coveragePeriod": "1年",
+      "responsibilities": [
+        {
+          "name": "意外身故/伤残",
+          "desc": "按伤残等级给付",
+          "limit": 1000000
+        },
+        {
+          "name": "意外医疗",
+          "desc": "门急诊及住院医疗费用",
+          "limit": 100000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2023-11-20",
+          "amount": 1200,
+          "note": "年度首缴",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "812345678903"
+    },
+    {
+      "id": 4,
+      "company": "中国平安保险",
+      "name": "平安福21重疾险",
+      "type": "重疾",
+      "amount": 500000,
+      "nextPayment": "2025-02-20",
+      "status": "保障中",
+      "applicant": "张三",
+      "insured": "张三",
+      "periodStart": "2024-02-20",
+      "periodEnd": "终身",
+      "annualPremium": 12000,
+      "paymentPeriod": "20年交",
+      "coveragePeriod": "终身",
+      "responsibilities": [
+        {
+          "name": "重大疾病保险金",
+          "desc": "覆盖常见重大疾病",
+          "limit": 500000
+        },
+        {
+          "name": "轻症疾病保险金",
+          "desc": "轻症多次赔付",
+          "limit": 150000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2024-02-20",
+          "amount": 12000,
+          "note": "首期缴费",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "PL1771805076719678",
+      "createdBy": 2,
+      "createdAt": "2026-02-23T00:04:36.719Z"
+    },
+    {
+      "id": 5,
+      "company": "中国平安保险",
+      "name": "平安福21重疾险",
+      "type": "重疾",
+      "amount": 500000,
+      "nextPayment": "2025-02-20",
+      "status": "保障中",
+      "applicant": "张三",
+      "insured": "张三",
+      "periodStart": "2024-02-20",
+      "periodEnd": "终身",
+      "annualPremium": 12000,
+      "paymentPeriod": "20年交",
+      "coveragePeriod": "终身",
+      "responsibilities": [
+        {
+          "name": "重大疾病保险金",
+          "desc": "覆盖常见重大疾病",
+          "limit": 500000
+        },
+        {
+          "name": "轻症疾病保险金",
+          "desc": "轻症多次赔付",
+          "limit": 150000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2024-02-20",
+          "amount": 12000,
+          "note": "首期缴费",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "PL1771805203244981",
+      "createdBy": 4,
+      "createdAt": "2026-02-23T00:06:43.244Z"
+    },
+    {
+      "id": 6,
+      "company": "中国平安保险",
+      "name": "平安医疗升级版",
+      "type": "医疗",
+      "amount": 500000,
+      "nextPayment": "2027-02-23",
+      "status": "保障中",
+      "applicant": "张三",
+      "insured": "张三",
+      "periodStart": "2026-02-23",
+      "periodEnd": "2046-02-22",
+      "annualPremium": 12000,
+      "paymentPeriod": "20年交",
+      "coveragePeriod": "20年",
+      "responsibilities": [
+        {
+          "name": "一般医疗保险金",
+          "desc": "住院及门急诊保障",
+          "limit": 500000
+        },
+        {
+          "name": "重疾医疗保险金",
+          "desc": "重大疾病医疗额外保障",
+          "limit": 1000000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2026-02-23",
+          "amount": 12000,
+          "note": "首期缴费",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "PL177181832256455",
+      "createdBy": 7,
+      "createdAt": "2026-02-23T03:45:22.564Z"
+    },
+    {
+      "id": 7,
+      "company": "中国平安保险",
+      "name": "平安福21重疾险",
+      "type": "重疾",
+      "amount": 500000,
+      "nextPayment": "2025-02-20",
+      "status": "保障中",
+      "applicant": "张三",
+      "insured": "张三",
+      "periodStart": "2024-02-20",
+      "periodEnd": "终身",
+      "annualPremium": 12000,
+      "paymentPeriod": "20年交",
+      "coveragePeriod": "终身",
+      "responsibilities": [
+        {
+          "name": "重大疾病保险金",
+          "desc": "覆盖常见重大疾病",
+          "limit": 500000
+        },
+        {
+          "name": "轻症疾病保险金",
+          "desc": "轻症多次赔付",
+          "limit": 150000
+        }
+      ],
+      "paymentHistory": [
+        {
+          "date": "2024-02-20",
+          "amount": 12000,
+          "note": "首期缴费",
+          "status": "支付成功"
+        }
+      ],
+      "policyNo": "PL1771819092726607",
+      "createdBy": 8,
+      "createdAt": "2026-02-23T03:58:12.726Z"
+    }
+  ]
 }

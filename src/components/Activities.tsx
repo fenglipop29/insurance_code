@@ -2,9 +2,10 @@ import React from 'react';
 
 interface Props {
   requireAuth: (action: () => void) => void;
+  onSignIn: () => void;
 }
 
-export default function Activities({ requireAuth }: Props) {
+export default function Activities({ requireAuth, onSignIn }: Props) {
   return (
     <section>
       <div className="flex justify-between items-end mb-3">
@@ -16,7 +17,7 @@ export default function Activities({ requireAuth }: Props) {
           <h3 className="text-lg font-bold z-10">签到领鸡蛋</h3>
           <p className="text-sm opacity-90 z-10 mt-1">连续签到7天可换新鲜鸡蛋</p>
           <button 
-            onClick={() => requireAuth(() => alert('签到成功！'))}
+            onClick={() => requireAuth(onSignIn)}
             className="mt-3 bg-white/20 backdrop-blur-md w-fit px-4 py-1.5 rounded-full text-xs font-bold z-10 active:bg-white/30 transition-colors"
           >
             去签到
