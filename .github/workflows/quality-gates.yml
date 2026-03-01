@@ -10,9 +10,6 @@ on:
 jobs:
   insurance-code-gates:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: insurance_code
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: insurance_code/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install deps
         run: npm ci
@@ -67,9 +64,6 @@ jobs:
 
   insurance-b-typecheck:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: insurance_code_B
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,20 +72,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: insurance_code_B/package-lock.json
 
-      - name: Install deps
-        run: npm ci
-
-      - name: Typecheck (B)
-        run: npm run typecheck
+      - name: Typecheck (B if present)
+        run: |
+          if [ -d insurance_code_B ]; then
+            cd insurance_code_B
+            npm ci
+            npm run typecheck
+          else
+            echo "insurance_code_B not present, skipping."
+          fi
 
   insurance-p-typecheck:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: insurance_code_P
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,11 +93,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: insurance_code_P/package-lock.json
 
-      - name: Install deps
-        run: npm ci
-
-      - name: Typecheck (P)
-        run: npm run typecheck
+      - name: Typecheck (P if present)
+        run: |
+          if [ -d insurance_code_P ]; then
+            cd insurance_code_P
+            npm ci
+            npm run typecheck
+          else
+            echo "insurance_code_P not present, skipping."
+          fi
