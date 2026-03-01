@@ -5,7 +5,9 @@ const ACCOUNT = String(process.env.P_ADMIN_ACCOUNT || 'platform001');
 const PASSWORD = String(process.env.P_ADMIN_PASSWORD || '123456');
 const COMPANY_ACCOUNT = String(process.env.P_COMPANY_ADMIN_ACCOUNT || '');
 const COMPANY_PASSWORD = String(process.env.P_COMPANY_ADMIN_PASSWORD || '');
-const REQUIRE_COMPANY_WORKFORCE = String(process.env.REQUIRE_COMPANY_WORKFORCE || 'false').toLowerCase() === 'true';
+const requireFlagRaw = String(process.env.REQUIRE_COMPANY_WORKFORCE || '').toLowerCase();
+const REQUIRE_COMPANY_WORKFORCE =
+  requireFlagRaw === 'true' || (requireFlagRaw === '' && Boolean(COMPANY_ACCOUNT && COMPANY_PASSWORD));
 
 function fail(message, context) {
   const err = new Error(message);

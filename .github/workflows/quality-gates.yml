@@ -52,14 +52,9 @@ jobs:
           exit 1
 
       - name: Smoke test (p-admin modules)
-        run: npm run test:smoke:p-admin-modules
-
-      - name: Smoke test (p-admin modules, company-admin strict)
-        if: ${{ secrets.P_COMPANY_ADMIN_ACCOUNT != '' && secrets.P_COMPANY_ADMIN_PASSWORD != '' }}
         env:
           P_COMPANY_ADMIN_ACCOUNT: ${{ secrets.P_COMPANY_ADMIN_ACCOUNT }}
           P_COMPANY_ADMIN_PASSWORD: ${{ secrets.P_COMPANY_ADMIN_PASSWORD }}
-          REQUIRE_COMPANY_WORKFORCE: "true"
         run: npm run test:smoke:p-admin-modules
 
       - name: Stop API skeleton
